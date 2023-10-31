@@ -1,0 +1,50 @@
+@page "/addcenter"
+@using global::Shared.DTOs
+@using HttpClients.ClientInterfaces
+@inject ICenterService centerService
+
+<PageTitle>Add Center</PageTitle>
+
+<h1>Add Center</h1>
+
+<div class="card">
+    <h3>Create Center</h3>
+    <div class="form-group field">
+        <label>Name:</label>
+        <input type="text" @bind="name" @bind:event="oninput"/>
+        <label>Location:</label>
+        <input type="text" @bind="location" @bind:event="oninput"/>
+        @if (!string.IsNullOrEmpty(resultMsg))
+        {
+            <label style="color: @color">@resultMsg</label>
+        }
+    </div>
+    <div class="button-row">
+        <button @onclick="Create" disabled="@(string.IsNullOrEmpty(name))" class="acceptbtn">Create</button>
+    </div>
+</div>
+
+ @code {
+     private string name = "";
+     private string location = "";
+     private string resultMsg = "";
+     private string color = "";
+    
+     private async Task Create()
+     {
+         resultMsg = "";
+         try
+         {
+             await centerService.CreateCenter(new CenterCreationDTO(name, location));
+             name = "";
+             resultMsg = "User successfully created";
+             color = "green";
+         }
+         catch (Exception e)
+         {
+             Console.WriteLine(e);
+             resultMsg = e.Message;
+             color = "red";
+         }
+     }
+ }
