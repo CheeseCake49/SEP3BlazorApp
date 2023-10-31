@@ -4,6 +4,7 @@ html, body {
 
 h1:focus {
     outline: none;
+    margin-bottom: 1rem;
 }
 
 a, .btn-link {

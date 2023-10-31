@@ -2,51 +2,84 @@
 @using HttpClients.ClientInterfaces
 @using global::Shared.DTOs
 @inject ICenterService CenterService
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Add Center</PageTitle>
 
-<h1>Add Center</h1>
+<MudPaper Outlined="false" Class="border-none mb-2" Elevation="0">
+<MudText Typo="Typo.h2">Add Center</MudText>
+</MudPaper>
 
-<div class="card">
-    <h3>Create Center</h3>
-    <div class="form-group field">
-        <label>Center Name:</label>
-        <input type="text" @bind="name" @bind:event="oninput"/>
-        <label>Location:</label>
-        <input type="text" @bind="location" @bind:event="oninput"/>
-        @if (!string.IsNullOrEmpty(resultMsg))
-        {
-            <label style="color: @color">@resultMsg</label>
-        }
-    </div>
-    <div class="button-row">
-        <button @onclick="Create" disabled="@(string.IsNullOrEmpty(name))" class="acceptbtn">Create</button>
-    </div>
-</div>
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+<DataAnnotationsValidator/>
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudCard>
+            <MudCardContent>
+                <MudTextField Label="Center Name"
+                              @bind-Value="model.Name" For="@(() => model.Name)"/>
+                <MudTextField Label="Location" Class="mt-3"
+                              @bind-Value="model.Location" For="@(() => model.Location)"/>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">Validation Summary</MudText>
+            @if (success)
+            {
+                <MudText Color="Color.Success">Success</MudText>
+            }
+            else
+            {
+                <MudText Color="@Color.Error">
+                    <ValidationSummary />
+                </MudText>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+</EditForm>
 
 @code {
+    
+    RegisterAccountForm model = new RegisterAccountForm();
+    bool success;
+
+    public class RegisterAccountForm
+    {
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public string Location { get; set; }
+    }
+
+    private void OnValidSubmit(EditContext context)
+    {
+        success = true;
+        Create();
+        StateHasChanged();
+    }
+    
+    
     private string name = "";
     private string location = "";
-    private string resultMsg = "";
-    private string color = "";
     
     private async Task Create()
     {
-        resultMsg = "";
-
         try
         {
             await CenterService.CreateCenter(new CenterCreationDTO(name, location));
             name = "";
             location = "";
-            resultMsg = "Center successfully created";
-            color = "green";
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            resultMsg = e.Message;
-            color = "red";
         }
     }
 }
