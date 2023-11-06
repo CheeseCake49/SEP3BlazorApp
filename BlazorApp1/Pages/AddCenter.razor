@@ -63,19 +63,16 @@
         success = true;
         Create();
         StateHasChanged();
+        Console.WriteLine(model.Name, model.Location);
     }
-    
-    
-    private string name = "";
-    private string location = "";
     
     private async Task Create()
     {
         try
         {
-            await CenterService.CreateCenter(new CenterCreationDTO(name, location));
-            name = "";
-            location = "";
+            await CenterService.CreateCenter(new CenterCreationDTO(model.Name, model.Location));
+            model.Name = "";
+            model.Location = "";
         }
         catch (Exception e)
         {
