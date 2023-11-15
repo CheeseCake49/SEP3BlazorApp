@@ -14,7 +14,7 @@ builder.Services.AddScoped<ICenterService, CenterHttpClient>();
 builder.Services.AddScoped(
     sp => 
         new HttpClient { 
-            BaseAddress = new Uri("https://localhost:7024") 
+            BaseAddress = new Uri("https://localhost:7024")
         }
 );
 

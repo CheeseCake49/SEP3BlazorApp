@@ -5,6 +5,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 @using System.Globalization;
+@using global::Shared.Models
 
 <PageTitle>Add Center</PageTitle>
 
@@ -15,7 +16,7 @@
 <EditForm Model="@centerModel" OnValidSubmit="OnValidSubmit">
 <DataAnnotationsValidator/>
 <MudGrid>
-    <MudItem xs="12" sm="9">
+    <MudItem xs="12" sm="12">
         <MudCard>
             <MudCardContent>
                 <MudText Typo="Typo.h4">General Information</MudText>
@@ -32,53 +33,52 @@
                     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="ToggleFormVisibility"/>
                 </MudText>
                 
-                    @if (isFormVisible)
-                    {
-                        <MudPaper Elevation="0" Class="d-inline-flex gap-x-9 border-none">
-                            <MudSelect T="string" Label="Court Type" AnchorOrigin="Origin.BottomCenter">
-                                <MudSelectItem Value="@("Single")"/>
-                                <MudSelectItem Value="@("Double")"/>
-                            </MudSelect>
-                            <MudTextField Label="Court Number"
-                                          @bind-Value="courtModel.CourtNumber" For="@(() => courtModel.CourtNumber)"/>
-                            <MudTextField Label="Court Sponsor"
-                                          @bind-Value="courtModel.CourtSponsor" For="@(() => courtModel.CourtSponsor)"/>
-                            <MudIconButton Icon="@Icons.Material.Filled.AddBox" Color="Color.Primary" aria-label="add" OnClick="AddCourtRow"></MudIconButton>
-                        </MudPaper>
-                    }
-                
+@if (isFormVisible)
+{
+    <MudPaper Elevation="0" Class="d-flex flex-column gap-4 border-none">
+        @foreach (var row in courtRows)
+        {
+            <div class="d-flex gap-4">
+                <MudSelect T="string" Label="Court Type" AnchorOrigin="Origin.BottomCenter" @bind-Value="row.CourtType">
+                    <MudSelectItem Value="@("Single")" />
+                    <MudSelectItem Value="@("Double")" />
+                </MudSelect>
+                <MudTextField Label="Court Number" @bind-Value="row.CourtNumber" For="@(() => row.CourtNumber)" />
+                <MudTextField Label="Court Sponsor" @bind-Value="row.CourtSponsor" For="@(() => row.CourtSponsor)" />
+            </div>
+        }
+
+        <div class="d-flex justify-space-between gap-4">
+            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Medium" aria-label="deleterow" OnClick="DeleteCourtRow"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Size="Size.Medium" aria-label="addrow" OnClick="AddCourtRow"></MudIconButton>
+        </div>
+    </MudPaper>
+}
                 
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add</MudButton>
-                    </MudCardActions>
+                </MudCardActions>
+                
+                
             </MudCardContent>
         </MudCard>
     </MudItem>
     
     
-    <MudItem xs="12" sm="3">
-        <MudPaper Class="pa-4 mud-height-full">
-            <MudText Typo="Typo.subtitle2">Validation Summary</MudText>
-            @if (success)
-            {
-                <MudText Color="Color.Success">Success</MudText>
-            }
-            else
-            {
-                <MudText Color="@Color.Error">
-                    <ValidationSummary />
-                </MudText>
-            }
-        </MudPaper>
-    </MudItem>
+    
+    
 </MudGrid>
 </EditForm>
+
+
+
+
+
 
 @code {
 
     AddCenterForm centerModel = new AddCenterForm();
-    AddCourtsForm courtModel = new AddCourtsForm();
-    
+
     bool success;
     private bool isFormVisible = false;
 
@@ -95,19 +95,8 @@
 
         [Required]
         public string Address { get; set; }
-
+        
         public List<CourtCreationDTO> Courts { get; set; }
-    }
-    
-    public class AddCourtsForm
-    {
-        [Required]
-        public string CourtType { get; set; }
-        
-        [Required]
-        public string CourtNumber { get; set; }
-        
-        public string CourtSponsor { get; set; }
     }
 
     private void OnValidSubmit(EditContext context)
@@ -115,23 +104,28 @@
         success = true;
         Create();
         StateHasChanged();
-        Console.WriteLine(centerModel.CenterName, centerModel.ZipCode, centerModel.City, centerModel.Address);
     }
 
     private async Task Create()
     {
         try
         {
-            await CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), centerModel.City, centerModel.Address, centerModel.Courts));
-           
+            ConvertRowsToCourt();
+            await CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), 
+                centerModel.City, centerModel.Address, centerModel.Courts));
+            
             centerModel.CenterName = "";
             centerModel.ZipCode = "";
             centerModel.City = "";
             centerModel.Address = "";
+            centerModel.Courts = new List<CourtCreationDTO>();
+            courtRows = new List<CourtModel> { new CourtModel() };
+            isFormVisible = false;
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
+            centerModel.Courts = new List<CourtCreationDTO>();
         }
     }
 
@@ -140,10 +134,45 @@
     {
         isFormVisible = !isFormVisible;
     }
+    
+
+    private List<CourtModel> courtRows = new List<CourtModel> { new CourtModel() };
+
+    private void ConvertRowsToCourt()
+    {
+        foreach (var row in courtRows)
+        {
+            if (string.IsNullOrEmpty(row.CourtType) && string.IsNullOrEmpty(row.CourtNumber) && string.IsNullOrEmpty(row.CourtSponsor))
+                continue;
+            if (string.IsNullOrEmpty(row.CourtType) || string.IsNullOrEmpty(row.CourtNumber) || string.IsNullOrEmpty(row.CourtSponsor))
+            {
+                throw new ArgumentException("Tag dig sammen");
+            }
+                centerModel.Courts.Add(new CourtCreationDTO(row.CourtType, int.Parse(row.CourtNumber), row.CourtSponsor));
+            }
+    }
 
     private void AddCourtRow()
     {
-        
+        courtRows.Add(new CourtModel());
+    }
+
+    private void DeleteCourtRow()
+    {
+        courtRows[courtRows.Count - 1].CourtType = "Empty";
+        courtRows[courtRows.Count - 1].CourtNumber = "0";
+        courtRows[courtRows.Count - 1].CourtSponsor = "Empty";
+        courtRows.RemoveAt(courtRows.Count - 1);
+    }
+
+    public class CourtModel
+    {
+        [Required]
+        public string CourtType { get; set; }
+        [Required]
+        public string CourtNumber { get; set; }
+        [Required]
+        public string CourtSponsor { get; set; }
     }
 
 }
