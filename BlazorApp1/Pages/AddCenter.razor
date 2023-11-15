@@ -3,6 +3,8 @@
 @using global::Shared.DTOs
 @inject ICenterService CenterService
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+@using System.Globalization;
 
 <PageTitle>Add Center</PageTitle>
 
@@ -10,23 +12,51 @@
 <MudText Typo="Typo.h2">Add Center</MudText>
 </MudPaper>
 
-<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+<EditForm Model="@centerModel" OnValidSubmit="OnValidSubmit">
 <DataAnnotationsValidator/>
 <MudGrid>
-    <MudItem xs="12" sm="7">
+    <MudItem xs="12" sm="9">
         <MudCard>
             <MudCardContent>
+                <MudText Typo="Typo.h4">General Information</MudText>
                 <MudTextField Label="Center Name"
-                              @bind-Value="model.Name" For="@(() => model.Name)"/>
-                <MudTextField Label="Location" Class="mt-3"
-                              @bind-Value="model.Location" For="@(() => model.Location)"/>
+                              @bind-Value="centerModel.CenterName" For="@(() => centerModel.CenterName)"/>
+                <MudTextField Label="Zip Code" Class="mt-3"
+                              @bind-Value="centerModel.ZipCode" For="@(() => centerModel.ZipCode)"/>
+                <MudTextField Label="City" Class="mt-3"
+                              @bind-Value="centerModel.City" For="@(() => centerModel.City)"/>
+                <MudTextField Label="Address" Class="mt-3"
+                              @bind-Value="centerModel.Address" For="@(() => centerModel.Address)"/>
+
+                <MudText Typo="Typo.h4" Class="mt-8">Courts 
+                    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="ToggleFormVisibility"/>
+                </MudText>
+                
+                    @if (isFormVisible)
+                    {
+                        <MudPaper Elevation="0" Class="d-inline-flex gap-x-9 border-none">
+                            <MudSelect T="string" Label="Court Type" AnchorOrigin="Origin.BottomCenter">
+                                <MudSelectItem Value="@("Single")"/>
+                                <MudSelectItem Value="@("Double")"/>
+                            </MudSelect>
+                            <MudTextField Label="Court Number"
+                                          @bind-Value="courtModel.CourtNumber" For="@(() => courtModel.CourtNumber)"/>
+                            <MudTextField Label="Court Sponsor"
+                                          @bind-Value="courtModel.CourtSponsor" For="@(() => courtModel.CourtSponsor)"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.AddBox" Color="Color.Primary" aria-label="add" OnClick="AddCourtRow"></MudIconButton>
+                        </MudPaper>
+                    }
+                
+                
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add</MudButton>
+                    </MudCardActions>
             </MudCardContent>
-            <MudCardActions>
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add</MudButton>
-            </MudCardActions>
         </MudCard>
     </MudItem>
-    <MudItem xs="12" sm="5">
+    
+    
+    <MudItem xs="12" sm="3">
         <MudPaper Class="pa-4 mud-height-full">
             <MudText Typo="Typo.subtitle2">Validation Summary</MudText>
             @if (success)
@@ -45,17 +75,39 @@
 </EditForm>
 
 @code {
-    
-    RegisterAccountForm model = new RegisterAccountForm();
-    bool success;
 
-    public class RegisterAccountForm
+    AddCenterForm centerModel = new AddCenterForm();
+    AddCourtsForm courtModel = new AddCourtsForm();
+    
+    bool success;
+    private bool isFormVisible = false;
+
+    public class AddCenterForm
     {
         [Required]
-        public string Name { get; set; }
+        public string CenterName { get; set; }
 
         [Required]
-        public string Location { get; set; }
+        public string ZipCode { get; set; }
+
+        [Required]
+        public string City { get; set; }
+
+        [Required]
+        public string Address { get; set; }
+
+        public List<CourtCreationDTO> Courts { get; set; }
+    }
+    
+    public class AddCourtsForm
+    {
+        [Required]
+        public string CourtType { get; set; }
+        
+        [Required]
+        public string CourtNumber { get; set; }
+        
+        public string CourtSponsor { get; set; }
     }
 
     private void OnValidSubmit(EditContext context)
@@ -63,20 +115,35 @@
         success = true;
         Create();
         StateHasChanged();
-        Console.WriteLine(model.Name, model.Location);
+        Console.WriteLine(centerModel.CenterName, centerModel.ZipCode, centerModel.City, centerModel.Address);
     }
-    
+
     private async Task Create()
     {
         try
         {
-            await CenterService.CreateCenter(new CenterCreationDTO(model.Name, model.Location));
-            model.Name = "";
-            model.Location = "";
+            await CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), centerModel.City, centerModel.Address, centerModel.Courts));
+           
+            centerModel.CenterName = "";
+            centerModel.ZipCode = "";
+            centerModel.City = "";
+            centerModel.Address = "";
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
     }
+
+
+    private void ToggleFormVisibility()
+    {
+        isFormVisible = !isFormVisible;
+    }
+
+    private void AddCourtRow()
+    {
+        
+    }
+
 }
