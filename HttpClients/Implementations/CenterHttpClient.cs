@@ -32,4 +32,20 @@ public class CenterHttpClient : ICenterService
         })!;
         return center;
     }
+
+    public async Task<ICollection<Center>> GetCentersAsync()
+    {
+        HttpResponseMessage response = await client.GetAsync("/center");
+        string content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(content);
+        }
+
+        ICollection<Center> centers = JsonSerializer.Deserialize<ICollection<Center>>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+        return centers;
+    }
 }
