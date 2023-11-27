@@ -1,0 +1,71 @@
+@page "/ViewCenters"
+@using HttpClients.ClientInterfaces
+@inject ICenterService CenterService
+@using global::Shared.Models
+@inject HttpClient httpClient
+
+
+<PageTitle>View Centers</PageTitle>
+
+<MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Centers</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>ID</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>No. of Courts</MudTh>
+        <MudTh>City</MudTh>
+        <MudTh>Zip Code</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ID">@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Courts">@context.Courts.Count</MudTd>
+        <MudTd DataLabel="City">@context.City</MudTd>
+        <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+
+
+@code {
+    private string msg = "";
+    private string searchString1 = "";
+    private Center selectedItem1 = null;
+    private HashSet<Center> selectedItems = new HashSet<Center>();
+
+    private IEnumerable<Center> centers = new List<Center>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            centers = await CenterService.GetCentersAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            msg = e.Message;
+        }
+    }
+
+    private bool FilterFunc1(Center center) => FilterFunc(center, searchString1);
+
+    private bool FilterFunc(Center center, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (center.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{center.Id} {center.ZipCode}".Contains(searchString))
+            return true;
+        return false;
+    }
+}
