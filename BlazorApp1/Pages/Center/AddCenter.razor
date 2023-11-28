@@ -109,8 +109,8 @@
         try
         {
             ConvertRowsToCourt();
-            await CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), 
-                centerModel.City, centerModel.Address, centerModel.Courts));
+            CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), 
+                                              centerModel.City, centerModel.Address, centerModel.Courts));
             
             centerModel.CenterName = "";
             centerModel.ZipCode = "";
@@ -138,6 +138,7 @@
 
     private void ConvertRowsToCourt()
     {
+        centerModel.Courts = new List<CourtCreationDTO>();
         foreach (var row in courtRows)
         {
             if (string.IsNullOrEmpty(row.CourtType) && string.IsNullOrEmpty(row.CourtNumber) && string.IsNullOrEmpty(row.CourtSponsor))
