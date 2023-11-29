@@ -31,7 +31,7 @@ public class CourtHttpClient : ICourtService
         return court;
     }
 
-    public async Task<ICollection<Court>> GetCourtsAsync(int centerId)
+    public async Task<List<Court>> GetCourtsAsync(int centerId)
     {
         HttpResponseMessage response = await client.GetAsync($"/court/{centerId}");
         string content = await response.Content.ReadAsStringAsync();
@@ -40,10 +40,20 @@ public class CourtHttpClient : ICourtService
             throw new Exception(content);
         }
         
-        ICollection<Court> courts = JsonSerializer.Deserialize<ICollection<Court>>(content, new JsonSerializerOptions
+        List<Court> courts = JsonSerializer.Deserialize<List<Court>>(content, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;
         return courts;
+    }
+
+    public async Task DeleteCourt(int centerId, int courtNumber)
+    {
+        HttpResponseMessage response = await client.DeleteAsync($"/court/{centerId}/{courtNumber}");
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            throw new Exception(content);
+        }
     }
 }

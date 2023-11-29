@@ -2,6 +2,7 @@
 @using global::Shared.Models
 @using HttpClients.ClientInterfaces
 @inject ICourtService courtService
+@inject NavigationManager NavigationManager
 
 
 <MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
@@ -15,11 +16,15 @@
         <MudTh>Court Number</MudTh>
         <MudTh>Court Sponsor</MudTh>
         <MudTh></MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Court Type">@context.CourtType</MudTd>
         <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
         <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCourt(@context.CenterId, @context.CourtNumber))"></MudIconButton>
+        </MudTd>
     </RowTemplate>
     <PagerContent>
         <MudTablePager />
@@ -34,7 +39,7 @@
     [Parameter]
     public int Id { get; set; }
 
-    private IEnumerable<Court> courts = new List<Court>();
+    private List<Court> courts = new List<Court>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,4 +66,19 @@
                     return true;
                 return false;
             }
+
+    private void DeleteCourt(int centerId, int courtNumber)
+    {
+        try
+        {
+            courtService.DeleteCourt(centerId, courtNumber);
+            courts.Remove(courts.Find(court => court.CenterId == centerId && court.CourtNumber == courtNumber));
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+    
         }
