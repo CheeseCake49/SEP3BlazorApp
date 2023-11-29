@@ -1,0 +1,23 @@
+@page "/centerdashboard/{id:int}"
+@inject NavigationManager NavigationManager
+
+<h3>INSERT NAME Dashboard</h3>
+
+<MudButton @onclick="() => GoToViewCourts(Id)">Click me!</MudButton>
+
+@code {
+    
+    [Parameter]
+    public int Id { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"CenterDashboard {Id} Initialized");
+    }
+    
+    private void GoToViewCourts(int id)
+    {
+        NavigationManager.NavigateTo($"centerdashboard/{id}/viewcourts");
+    }
+    
+}

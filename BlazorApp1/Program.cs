@@ -10,6 +10,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddMudServices();
 builder.Services.AddScoped<ICenterService, CenterHttpClient>();
+builder.Services.AddScoped<ICourtService, CourtHttpClient>();
 
 builder.Services.AddScoped(
     sp => 

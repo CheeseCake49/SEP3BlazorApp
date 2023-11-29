@@ -3,6 +3,7 @@
 @inject ICenterService CenterService
 @using global::Shared.Models
 @inject HttpClient httpClient
+@inject NavigationManager NavigationManager
 
 
 <PageTitle>View Centers</PageTitle>
@@ -19,10 +20,11 @@
         <MudTh>No. of Courts</MudTh>
         <MudTh>City</MudTh>
         <MudTh>Zip Code</MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="ID">@context.Id</MudTd>
-        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Name" @onclick="() => AccessCenterDashboard(context.Id)">@context.Name</MudTd>
         <MudTd DataLabel="Courts">@context.Courts.Count</MudTd>
         <MudTd DataLabel="City">@context.City</MudTd>
         <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
@@ -54,6 +56,11 @@
             Console.WriteLine(e);
             msg = e.Message;
         }
+    }
+    
+    private void AccessCenterDashboard(int centerId)
+    {
+        NavigationManager.NavigateTo($"/CenterDashboard/{centerId}");
     }
 
     private bool FilterFunc1(Center center) => FilterFunc(center, searchString1);
