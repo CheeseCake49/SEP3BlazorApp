@@ -20,7 +20,7 @@
                 <MudText Typo="Typo.h4">General Information</MudText>
                 <MudTextField Label="Center Name"
                               @bind-Value="centerModel.CenterName" For="@(() => centerModel.CenterName)"/>
-                <MudTextField Label="Zip Code" Class="mt-3"
+                <MudNumericField HideSpinButtons="true" Label="Zip Code" Class="mt-3"
                               @bind-Value="centerModel.ZipCode" For="@(() => centerModel.ZipCode)"/>
                 <MudTextField Label="City" Class="mt-3"
                               @bind-Value="centerModel.City" For="@(() => centerModel.City)"/>
