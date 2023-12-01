@@ -15,9 +15,9 @@ public class CourtHttpClient : ICourtService
         this.client = client;
     }
 
-    public async Task<Court> CreateCourt(CourtCreationDTO courtCreationDTO)
+    public async Task<Court> CreateCourt(CourtCreationDTO courtCreationDTO, int centerId)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("/court", courtCreationDTO);
+        HttpResponseMessage response = await client.PostAsJsonAsync($"/court/{centerId}", courtCreationDTO);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
@@ -31,7 +31,7 @@ public class CourtHttpClient : ICourtService
         return court;
     }
 
-    public async Task<ICollection<Court>> GetCourtsAsync(int centerId)
+    public async Task<List<Court>> GetCourtsAsync(int centerId)
     {
         HttpResponseMessage response = await client.GetAsync($"/court/{centerId}");
         string content = await response.Content.ReadAsStringAsync();
@@ -40,7 +40,7 @@ public class CourtHttpClient : ICourtService
             throw new Exception(content);
         }
         
-        ICollection<Court> courts = JsonSerializer.Deserialize<ICollection<Court>>(content, new JsonSerializerOptions
+        List<Court> courts = JsonSerializer.Deserialize<List<Court>>(content, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;
