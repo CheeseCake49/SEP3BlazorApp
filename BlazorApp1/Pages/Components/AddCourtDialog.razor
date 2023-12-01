@@ -1,0 +1,39 @@
+@using HttpClients.ClientInterfaces
+@using BlazorApp1.Pages.Center
+@inject ICourtService CourtService
+@using global::Shared.DTOs
+@using global::Shared.Models
+
+<MudDialog Style="width: 500px">
+    <DialogContent>
+        <MudSelect T="string" Label="Court Type" @bind-Value="_courtModel.CourtType">
+            <MudSelectItem Value="@("Single")" />
+            <MudSelectItem Value="@("Double")" />
+        </MudSelect>
+        <MudTextField T="string" Label="Number" @bind-Value="_courtModel.CourtNumber"></MudTextField>
+        <MudTextField T="string" Label="Court Sponsor (Optional)" @bind-Value="_courtModel.CourtSponsor"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="AddCourt">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    
+    AddCenter.CourtModel _courtModel = new();
+    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int CenterId { get; set; }
+
+    async Task AddCourt()
+    {
+        Court court = await CourtService.CreateCourt(new CourtCreationDTO(_courtModel.CourtType,
+            int.Parse(_courtModel.CourtNumber), _courtModel.CourtSponsor), CenterId);
+        MudDialog.Close(DialogResult.Ok(court));
+    }
+    
+    void Cancel() => MudDialog.Cancel();
+    
+}

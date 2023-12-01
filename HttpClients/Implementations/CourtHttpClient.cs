@@ -15,9 +15,9 @@ public class CourtHttpClient : ICourtService
         this.client = client;
     }
 
-    public async Task<Court> CreateCourt(CourtCreationDTO courtCreationDTO)
+    public async Task<Court> CreateCourt(CourtCreationDTO courtCreationDTO, int centerId)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("/court", courtCreationDTO);
+        HttpResponseMessage response = await client.PostAsJsonAsync($"/court/{centerId}", courtCreationDTO);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {

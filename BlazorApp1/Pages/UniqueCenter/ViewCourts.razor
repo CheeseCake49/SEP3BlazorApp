@@ -1,21 +1,27 @@
 @page "/centerdashboard/{id:int}/ViewCourts"
+@inject IDialogService DialogService
 @using global::Shared.Models
 @using HttpClients.ClientInterfaces
+@using BlazorApp1.Pages.Components
 @inject ICourtService courtService
 @inject NavigationManager NavigationManager
 
 
 <MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Courts</MudText>
-        <MudSpacer />
+        <MudPaper Class="mr-6" Elevation="0">
+            <MudText Typo="Typo.h6">Courts</MudText>
+        </MudPaper>
+        <MudButton @onclick="AddCourtDialog" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+            Add Court
+        </MudButton>
+        <MudSpacer/>
         <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>Court Type</MudTh>
         <MudTh>Court Number</MudTh>
         <MudTh>Court Sponsor</MudTh>
-        <MudTh></MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -36,10 +42,13 @@
     private string searchString1 = "";
     private Court selectedItem1 = null;
     private HashSet<Court> selectedItems = new HashSet<Court>();
+
+
     [Parameter]
     public int Id { get; set; }
 
-    private List<Court> courts = new List<Court>();
+    private List<Court> courts = new();
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,4 +90,31 @@
         }
     }
     
+    private bool FilterFunc(Court court, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (court.CourtSponsor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{court.Id} {court.CourtNumber}".Contains(searchString))
+            return true;
+        return false;
+    }
+    
+    
+    private async Task AddCourtDialog()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("CenterId", Id);
+
+        var dialog = DialogService.Show<AddCourtDialog>("Add Court", parameters);
+
+        var result = await dialog.Result;
+        
+        
+        if (!result.Canceled)
+        {
+            var court = result.Data as Court;
+            courts.Add(court);
+            StateHasChanged();
         }
