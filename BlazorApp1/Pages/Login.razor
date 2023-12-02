@@ -16,6 +16,9 @@
                         <label style="text-align: center">Password:</label>
                         <input type="password" @bind="password" />
                     </div>
+                    <div class="field">
+                        <p>No account? <a href="/createuser" style="color: #1861ac; font-weight: bold;">Register now</a></p>
+                    </div>
                     @if (!string.IsNullOrEmpty(errorLabel))
                     {
                         <div class="field">
@@ -32,8 +35,10 @@
         </NotAuthorized>
     <Authorized>
         <div class="card">
-            <h3>Hello, @context.User.Identity.Name</h3>
-        </div>
+            <h3>Hello, @context.User.Identity.Name!</h3>
+            <div class="mt-4" />
+            <p>You're currently logged in. Want to <a href="#" @onclick="Logout" style="font-weight: bold; color: #1861ac;">logout</a>?</p>
+            </div>
     </Authorized>
 </AuthorizeView>
 
@@ -56,4 +61,12 @@
             errorLabel = $"Error: {e.Message}";
         }
     }
+    
+    private async Task Logout()
+    {
+        await authService.LogoutAsync();
+        navMgr.NavigateTo("/"); 
+    }
+    
+
 }
