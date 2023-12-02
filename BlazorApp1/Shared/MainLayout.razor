@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@using Login
 
 <MudThemeProvider Theme="MyCustomTheme" />
 <MudDialogProvider />
@@ -10,7 +11,8 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">Herskab Padel</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <LoginButtons />
+        
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu/>
@@ -33,6 +35,7 @@
     {
         _drawerOpen = !_drawerOpen;
     }
+    
     
     MudTheme MyCustomTheme = new MudTheme()
     {
