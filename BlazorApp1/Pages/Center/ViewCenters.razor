@@ -8,6 +8,7 @@
 
 <PageTitle>View Centers</PageTitle>
 
+
 <MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Centers</MudText>
@@ -21,6 +22,7 @@
         <MudTh>City</MudTh>
         <MudTh>Zip Code</MudTh>
         <MudTh></MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="ID">@context.Id</MudTd>
@@ -28,6 +30,9 @@
         <MudTd DataLabel="Courts">@context.Courts.Count</MudTd>
         <MudTd DataLabel="City">@context.City</MudTd>
         <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCenter(@context.Id))"></MudIconButton>
+        </MudTd>
     </RowTemplate>
     <PagerContent>
         <MudTablePager />
@@ -43,7 +48,7 @@
     private Center selectedItem1 = null;
     private HashSet<Center> selectedItems = new HashSet<Center>();
 
-    private IEnumerable<Center> centers = new List<Center>();
+    private List<Center> centers = new List<Center>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,4 +80,18 @@
             return true;
         return false;
     }
+    
+    private void DeleteCenter(int id)
+    {
+        try
+        {
+            CenterService.DeleteCenter(id);
+            centers.Remove(centers.Find(center => center.Id == id));
+            StateHasChanged();}
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+    
 }

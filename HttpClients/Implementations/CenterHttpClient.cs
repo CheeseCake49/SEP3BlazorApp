@@ -33,7 +33,17 @@ public class CenterHttpClient : ICenterService
         return center;
     }
 
-    public async Task<ICollection<Center>> GetCentersAsync()
+    public async Task DeleteCenter(int id)
+    {
+        HttpResponseMessage response = await client.DeleteAsync($"/center/{id}");
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            throw new Exception(content);
+        }
+    }
+
+    public async Task<List<Center>> GetCentersAsync()
     {
         HttpResponseMessage response = await client.GetAsync("/center");
         string content = await response.Content.ReadAsStringAsync();
@@ -42,7 +52,7 @@ public class CenterHttpClient : ICenterService
             throw new Exception(content);
         }
 
-        ICollection<Center> centers = JsonSerializer.Deserialize<ICollection<Center>>(content, new JsonSerializerOptions
+        List<Center> centers = JsonSerializer.Deserialize<List<Center>>(content, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;

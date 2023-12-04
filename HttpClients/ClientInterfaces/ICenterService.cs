@@ -7,5 +7,6 @@ namespace HttpClients.ClientInterfaces;
 public interface ICenterService
 {
     Task<Center> CreateCenter(CenterCreationDTO centerCreationDTO);
-    Task<ICollection<Center>> GetCentersAsync();
+    Task DeleteCenter(int id);
+    Task<List<Center>> GetCentersAsync();
 }
