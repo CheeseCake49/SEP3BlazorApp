@@ -4,9 +4,11 @@
 @using global::Shared.Models
 @inject HttpClient httpClient
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 
 <PageTitle>View Centers</PageTitle>
+
 
 <MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
     <ToolBarContent>
@@ -21,6 +23,7 @@
         <MudTh>City</MudTh>
         <MudTh>Zip Code</MudTh>
         <MudTh></MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="ID">@context.Id</MudTd>
@@ -28,6 +31,9 @@
         <MudTd DataLabel="Courts">@context.Courts.Count</MudTd>
         <MudTd DataLabel="City">@context.City</MudTd>
         <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.Id, @context.Name))"></MudIconButton>
+        </MudTd>
     </RowTemplate>
     <PagerContent>
         <MudTablePager />
@@ -35,15 +41,16 @@
 </MudTable>
 
 
-
-
 @code {
     private string msg = "";
     private string searchString1 = "";
     private Center selectedItem1 = null;
     private HashSet<Center> selectedItems = new HashSet<Center>();
+    
+    private int centerIdToDelete;
+    private string centerNameToDelete;
 
-    private IEnumerable<Center> centers = new List<Center>();
+    private List<Center> centers = new List<Center>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,4 +82,41 @@
             return true;
         return false;
     }
+    
+    private async Task ShowDeleteConfirmation(int id, string name)
+    {
+    centerIdToDelete = id;
+    centerNameToDelete = name;
+
+        var parameters = new DialogParameters<Dialog>();
+        parameters.Add(x => x.ContentText, $"Are you sure you want to delete {centerNameToDelete}?");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions()
+        {
+            CloseButton = true, 
+        };
+
+        var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
+
+    if (result.Cancelled)
+    {
+        // Do nothing
+    }
+    else
+    {
+        // User confirmed deletion
+        try
+        {
+            CenterService.DeleteCenter(centerIdToDelete);
+            centers.RemoveAll(c => c.Id == centerIdToDelete);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+}
+    
 }

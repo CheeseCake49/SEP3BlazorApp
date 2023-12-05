@@ -96,7 +96,7 @@
         
         public List<CourtCreationDTO> Courts { get; set; }
     }
-    
+
     public class CourtModel
     {
         [Required]
@@ -105,7 +105,7 @@
         public string CourtNumber { get; set; }
         public string CourtSponsor { get; set; }
     }
-
+    
     private void OnValidSubmit(EditContext context)
     {
         success = true;
@@ -172,5 +172,5 @@
         courtRows[courtRows.Count - 1].CourtSponsor = "Empty";
         courtRows.RemoveAt(courtRows.Count - 1);
     }
-
+    
 }
