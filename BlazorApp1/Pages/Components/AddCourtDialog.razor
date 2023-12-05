@@ -6,11 +6,11 @@
 
 <MudDialog Style="width: 500px">
     <DialogContent>
-        <MudSelect T="string" Label="Court Type" @bind-Value="_courtModel.CourtType">
+        <MudSelect T="string" Label="Court Type" @bind-Value="_courtModel.CourtType" Required="true">
             <MudSelectItem Value="@("Single")" />
             <MudSelectItem Value="@("Double")" />
         </MudSelect>
-        <MudTextField T="string" Label="Number" @bind-Value="_courtModel.CourtNumber"></MudTextField>
+        <MudTextField T="string" Label="Number" @bind-Value="_courtModel.CourtNumber" Required="true"></MudTextField>
         <MudTextField T="string" Label="Court Sponsor (Optional)" @bind-Value="_courtModel.CourtSponsor"></MudTextField>
     </DialogContent>
     <DialogActions>
