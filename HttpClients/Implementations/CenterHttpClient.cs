@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using HttpClients.ClientInterfaces;
 using Shared.DTOs;
@@ -57,5 +58,38 @@ public class CenterHttpClient : ICenterService
             PropertyNameCaseInsensitive = true
         })!;
         return centers;
+    }
+
+    public async Task UpdateAsync(CenterUpdatingDTO dto)
+    {
+        string dtoAsJson = JsonSerializer.Serialize(dto);
+        Console.WriteLine($"JSON Payload: {dtoAsJson}");
+        StringContent body = new StringContent(dtoAsJson, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PatchAsync("/center", body);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            throw new Exception(content);
+        }
+    }
+
+    public async Task<Center?> GetByIdAsync(int id)
+    {
+        HttpResponseMessage response = await client.GetAsync($"/center/{id}");
+        string result = await response.Content.ReadAsStringAsync();
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(result);
+        }
+
+        Center center = JsonSerializer.Deserialize<Center>(result, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+
+        return center;
     }
 }
