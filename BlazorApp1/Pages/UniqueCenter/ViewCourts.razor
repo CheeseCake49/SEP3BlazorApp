@@ -3,6 +3,7 @@
 @using HttpClients.ClientInterfaces
 @inject ICourtService courtService
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 
 <MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
@@ -23,7 +24,7 @@
         <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
         <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
         <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCourt(@context.CenterId, @context.CourtNumber))"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.CenterId, @context.CourtNumber))"></MudIconButton>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -38,6 +39,10 @@
     private HashSet<Court> selectedItems = new HashSet<Court>();
     [Parameter]
     public int Id { get; set; }
+
+    private int _centerId;
+    private int _courtNumber;
+
 
     private List<Court> courts = new List<Court>();
 
@@ -67,18 +72,40 @@
                 return false;
             }
 
-    private void DeleteCourt(int centerId, int courtNumber)
+    private async Task ShowDeleteConfirmation(int centerId, int courtNumber)
     {
-        try
+        _centerId = centerId;
+        _courtNumber = courtNumber;
+
+        var parameters = new DialogParameters<Dialog>();
+        parameters.Add(x => x.ContentText, $"Are you sure you want to delete court number: {_courtNumber}?");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions()
         {
-            courtService.DeleteCourt(centerId, courtNumber);
-            courts.Remove(courts.Find(court => court.CenterId == centerId && court.CourtNumber == courtNumber));
-            StateHasChanged();
+            CloseButton = true, 
+        };
+
+        var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
+
+        if (result.Cancelled)
+        {
+    // Do nothing
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e);
+    // User confirmed deletion
+            try
+            {
+                courtService.DeleteCourt(_centerId, _courtNumber);
+                courts.Remove(courts.Find(court => court.CenterId == _centerId && court.CourtNumber == _courtNumber));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
     
-        }
+}
