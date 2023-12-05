@@ -48,7 +48,7 @@
     public int Id { get; set; }
 
     private List<Court> courts = new();
-    
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,16 +65,16 @@
 
     private bool FilterFunc1(Court court) => FilterFunc(court, searchString1);
 
-            private bool FilterFunc(Court court, string searchString)
-            {
-                if (string.IsNullOrWhiteSpace(searchString))
-                    return true;
-                if (court.CourtSponsor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-                    return true;
-                if ($"{court.Id} {court.CourtNumber}".Contains(searchString))
-                    return true;
-                return false;
-            }
+    private bool FilterFunc(Court court, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (court.CourtSponsor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{court.Id} {court.CourtNumber}".Contains(searchString))
+            return true;
+        return false;
+    }
 
     private void DeleteCourt(int centerId, int courtNumber)
     {
@@ -89,19 +89,7 @@
             Console.WriteLine(e);
         }
     }
-    
-    private bool FilterFunc(Court court, string searchString)
-    {
-        if (string.IsNullOrWhiteSpace(searchString))
-            return true;
-        if (court.CourtSponsor.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if ($"{court.Id} {court.CourtNumber}".Contains(searchString))
-            return true;
-        return false;
-    }
-    
-    
+
     private async Task AddCourtDialog()
     {
         var parameters = new DialogParameters();
@@ -110,11 +98,15 @@
         var dialog = DialogService.Show<AddCourtDialog>("Add Court", parameters);
 
         var result = await dialog.Result;
-        
-        
+
+
         if (!result.Canceled)
         {
             var court = result.Data as Court;
             courts.Add(court);
             StateHasChanged();
         }
+    }
+
+}
+
