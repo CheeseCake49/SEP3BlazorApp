@@ -48,7 +48,7 @@
     private string searchString1 = "";
     private Center selectedItem1 = null;
     private HashSet<Center> selectedItems = new HashSet<Center>();
-    
+
     private int centerIdToDelete;
     private string centerNameToDelete;
 
@@ -67,7 +67,7 @@
             msg = e.Message;
         }
     }
-    
+
     private void AccessCenterDashboard(int centerId)
     {
         NavigationManager.NavigateTo($"/CenterDashboard/{centerId}");
@@ -85,11 +85,11 @@
             return true;
         return false;
     }
-    
+
     private async Task ShowDeleteConfirmation(int id, string name)
     {
-    centerIdToDelete = id;
-    centerNameToDelete = name;
+        centerIdToDelete = id;
+        centerNameToDelete = name;
 
         var parameters = new DialogParameters<Dialog>();
         parameters.Add(x => x.ContentText, $"Are you sure you want to delete {centerNameToDelete}?");
@@ -98,40 +98,32 @@
 
         var options = new DialogOptions()
         {
-            CloseButton = true, 
+            CloseButton = true,
         };
 
         var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
 
-    if (result.Cancelled)
-    {
-        // Do nothing
-    }
-    else
-    {
-        // User confirmed deletion
-        try
+        if (result.Cancelled)
         {
-            CenterService.DeleteCenter(centerIdToDelete);
-            centers.RemoveAll(c => c.Id == centerIdToDelete);
+    // Do nothing
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e);
+    // User confirmed deletion
+            try
+            {
+                CenterService.DeleteCenter(centerIdToDelete);
+                centers.RemoveAll(c => c.Id == centerIdToDelete);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
-}
+
     private async Task ShowEditDialog(Center center)
     {
-        Console.WriteLine("CALLED");
-
-        if (center == null)
-        {
-    // Handle the case where the provided center is null
-            Console.WriteLine("Center is null");
-            return;
-        }
-
         var parameters = new DialogParameters();
         parameters.Add("SelectedCenter", center);
 
@@ -150,8 +142,6 @@
     // Ensure that updatedCenter is not null before using it
                 if (updatedCenter != null)
                 {
-    // Update the list or take any other necessary actions
-    // Example: Update the existing center in the list
                     var existingCenter = centers.FirstOrDefault(c => c.Id == updatedCenter.Id);
                     if (existingCenter != null)
                     {
@@ -159,32 +149,12 @@
                         existingCenter.ZipCode = updatedCenter.ZipCode;
                         existingCenter.City = updatedCenter.City;
                         existingCenter.Address = updatedCenter.Address;
-
-                        Console.WriteLine("List updated successfully");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Existing center is null");
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Updated center is null");
-                }
+            }
 
-                StateHasChanged(); // Ensure UI updates
-            }
-            else
-            {
-                Console.WriteLine("Data property of result is not a Center");
-            }
-        }
-        else
-        {
-            Console.WriteLine("Result is null or cancelled");
+
         }
     }
 
-    
-    
 }

@@ -60,7 +60,7 @@ public class CenterHttpClient : ICenterService
         return centers;
     }
 
-    public async Task UpdateAsync(CenterUpdatingDTO dto)
+    public async Task<Center> UpdateAsync(CenterUpdatingDTO dto)
     {
         string dtoAsJson = JsonSerializer.Serialize(dto);
         Console.WriteLine($"JSON Payload: {dtoAsJson}");
@@ -68,11 +68,19 @@ public class CenterHttpClient : ICenterService
 
         HttpResponseMessage response = await client.PatchAsync("/center", body);
         
+        string content = await response.Content.ReadAsStringAsync();
+
         if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
+        {  
             throw new Exception(content);
         }
+        
+        Center center = JsonSerializer.Deserialize<Center>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+
+        return center;
     }
 
     public async Task<Center?> GetByIdAsync(int id)

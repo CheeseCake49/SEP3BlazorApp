@@ -4,7 +4,7 @@
 @using global::Shared.Models
 @inject ICenterService CenterService
 
-<MudDialog>
+<MudDialog Style="width: 500px">
     <TitleContent>
         <DialogTitle>Edit Center</DialogTitle>
     </TitleContent>
@@ -38,20 +38,20 @@
         public string Address { get; set; }
     }
     
+    protected override void OnInitialized()
+    {
+
+        model.CenterName = SelectedCenter.Name;
+        model.ZipCode = SelectedCenter.ZipCode.ToString();
+        model.City = SelectedCenter.City;
+        model.Address = SelectedCenter.Address;
+    }
+    
     private async Task SaveChanges()
     {
-        Console.WriteLine("CALLED");
-        Console.WriteLine($"Center ID: {SelectedCenter.Id}");
-        Console.WriteLine($"Center ID: {SelectedCenter.Name}");
-        Console.WriteLine($"Center ID: {SelectedCenter.ZipCode}");
-        Console.WriteLine($"Center ID: {SelectedCenter.City}");
-        Console.WriteLine($"Center ID: {SelectedCenter.Address}");
-
-        await CenterService.UpdateAsync(new CenterUpdatingDTO(SelectedCenter.Id,model.CenterName, int.Parse(model.ZipCode), model.City, model.Address));
-
-        var updatedCenter = await CenterService.GetByIdAsync(SelectedCenter.Id);
+        Center center = await CenterService.UpdateAsync(new CenterUpdatingDTO(SelectedCenter.Id,model.CenterName, int.Parse(model.ZipCode), model.City, model.Address));
         
-        MudDialog.Close(DialogResult.Ok(updatedCenter));
+        MudDialog.Close(DialogResult.Ok(center));
     }
 
     private void Cancel()
