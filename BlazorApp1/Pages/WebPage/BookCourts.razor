@@ -1,0 +1,49 @@
+@page "/webpageindex/BookCourts"
+@inject HttpClient httpClient
+
+
+<MudStack Justify="Justify.Center" Row="true">
+    <MudChipSet @bind-selectedChips="selected" MultiSelection="true">
+        <MudText Typo="Typo.caption" Align="Align.Left">
+            Double Court 1
+        </MudText>
+ 
+        @for (int i = 0; i < 72; i++)
+        {
+            if (i <= 35)
+            {
+                <MudChip Class="border-solid border rounded-0 ma-0" Style="max-height: 30px" Size="Size.Medium" Elevation="0"
+                         Label="true" Text="" Value=@($"{i} (Court 1)") Variant="Variant.Text" Color="Color.Secondary" SelectedColor="Color.Primary"></MudChip>
+            }
+            if (i == 35)
+            {
+                <br>
+                <MudText Typo="Typo.caption" Align="Align.Left">
+                    Double Court 2
+                </MudText>
+            }
+            if (i >= 36)
+            {
+                int adjustedIndex = i - 36;
+                <MudChip Class="border-solid border rounded-0 ma-0" Style="max-height: 30px" Size="Size.Medium" Elevation="0"
+                         Label="true" Text="" Value=@($"{adjustedIndex} (Court 2)") Variant="Variant.Text" Color="Color.Secondary" SelectedColor="Color.Primary"></MudChip>
+            }
+        }
+    </MudChipSet>
+</MudStack>
+ 
+<div class="d-flex flex-column align-center">
+    @if (selected != null && selected.Length > 0)
+    {
+        <MudText>You selected @string.Join(", ", selected.Select(chip => chip.Value)).</MudText>
+    }
+    else
+    {
+        <MudText>Nothing selected.</MudText>
+    }
+</div>
+ 
+@code {
+    MudChip[] selected;
+}
+ 

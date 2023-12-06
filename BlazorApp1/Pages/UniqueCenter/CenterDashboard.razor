@@ -1,9 +1,20 @@
 @page "/centerdashboard/{id:int}"
 @inject NavigationManager NavigationManager
 
-<h3>INSERT NAME Dashboard</h3>
-
+<MudPaper Class="border-none d-flex pa-4" Elevation="0">
 <MudButton @onclick="() => GoToViewCourts(Id)">Click me!</MudButton>
+</MudPaper>
+
+<MudPaper Class="border-none d-flex pa-4" Elevation="0">
+<MudButton Href="/webpageindex"
+           Target="_blank"
+           Variant="Variant.Text"
+           EndIcon="@Icons.Material.Filled.ArrowCircleRight"
+           Color="Color.Secondary"
+           Style="text-transform:none">
+    Go To Web Page!
+</MudButton>
+</MudPaper>
 
 @code {
     
