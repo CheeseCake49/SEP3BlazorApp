@@ -6,28 +6,28 @@ using Shared.Models;
 
 namespace HttpClients.Implementations;
 
-public class BookingHttpClient : IBookingService
+public class TimeSlotHttpClient : ITimeSlotService
 {
     private readonly HttpClient client;
     
-    public BookingHttpClient(HttpClient client)
+    public TimeSlotHttpClient(HttpClient client)
     {
         this.client = client;
     }
 
-    public async Task<Booking> CreateBooking(BookingCreationDTO bookingCreationDTO)
+    public async Task<TimeSlot> CreateTimeSlot(TimeSlotCreationDTO timeSlotCreationDTO)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("/booking", bookingCreationDTO);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/timeslot", timeSlotCreationDTO);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception(result);
         }
-
-        Booking booking = JsonSerializer.Deserialize<Booking>(result, new JsonSerializerOptions
+        
+        TimeSlot timeSlot = JsonSerializer.Deserialize<TimeSlot>(result, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;
-        return booking;
+        return timeSlot;
     }
 }
