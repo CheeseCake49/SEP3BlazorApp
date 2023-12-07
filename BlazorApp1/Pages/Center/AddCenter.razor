@@ -21,7 +21,7 @@
                 <MudTextField Label="Center Name"
                               @bind-Value="centerModel.CenterName" For="@(() => centerModel.CenterName)"/>
                 <MudNumericField HideSpinButtons="true" Label="Zip Code" Class="mt-3"
-                              @bind-Value="centerModel.ZipCode" For="@(() => centerModel.ZipCode)"/>
+                                 @bind-Value="centerModel.ZipCode" For="@(() => centerModel.ZipCode)"/>
                 <MudTextField Label="City" Class="mt-3"
                               @bind-Value="centerModel.City" For="@(() => centerModel.City)"/>
                 <MudTextField Label="Address" Class="mt-3"
@@ -31,45 +31,43 @@
                     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="ToggleFormVisibility"/>
                 </MudText>
                 
-@if (isFormVisible)
-{
-    <MudPaper Elevation="0" Class="d-flex flex-column gap-4 border-none">
-        @foreach (var row in courtRows)
-        {
-            <div class="d-flex gap-4">
-                <MudSelect T="string" Label="Court Type" AnchorOrigin="Origin.BottomCenter" @bind-Value="row.CourtType">
-                    <MudSelectItem Value="@("Single")" />
-                    <MudSelectItem Value="@("Double")" />
-                </MudSelect>
-                <MudTextField Label="Court Number" @bind-Value="row.CourtNumber" For="@(() => row.CourtNumber)" />
-                <MudTextField Label="Court Sponsor" @bind-Value="row.CourtSponsor" For="@(() => row.CourtSponsor)" />
-            </div>
-        }
+                @if (isFormVisible)
+                {
+                    <MudPaper Elevation="0" Class="d-flex flex-column gap-4 border-none">
+                        @foreach (var row in courtRows)
+                        {
+                            <div class="d-flex gap-4">
+                                <MudSelect T="string" Label="Court Type" AnchorOrigin="Origin.BottomCenter" @bind-Value="row.CourtType">
+                                    <MudSelectItem Value="@("Single")" />
+                                    <MudSelectItem Value="@("Double")" />
+                                </MudSelect>
+                                <MudTextField Label="Court Number" @bind-Value="row.CourtNumber" For="@(() => row.CourtNumber)" />
+                                <MudTextField Label="Court Sponsor" @bind-Value="row.CourtSponsor" For="@(() => row.CourtSponsor)" />
+                            </div>
+                        }
 
-        <div class="d-flex justify-space-between gap-4">
-            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Medium" aria-label="deleterow" OnClick="DeleteCourtRow"></MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Size="Size.Medium" aria-label="addrow" OnClick="AddCourtRow"></MudIconButton>
-        </div>
-    </MudPaper>
-}
+                        <div class="d-flex justify-space-between gap-4">
+                            <MudIconButton Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Medium" aria-label="deleterow" OnClick="DeleteCourtRow"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Size="Size.Medium" aria-label="addrow" OnClick="AddCourtRow"></MudIconButton>
+                        </div>
+                    </MudPaper>
+                }
                 
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Add</MudButton>
                 </MudCardActions>
                 
-                
             </MudCardContent>
         </MudCard>
     </MudItem>
     
-    
-    
-    
 </MudGrid>
 </EditForm>
 
-
-
+@if (showError)
+{
+    <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="(() => showError = false)">Name is already in use</MudAlert>
+}
 
 
 
@@ -79,6 +77,7 @@
 
     bool success;
     private bool isFormVisible = false;
+    bool showError;
 
     public class AddCenterForm
     {
@@ -109,8 +108,8 @@
     private void OnValidSubmit(EditContext context)
     {
         success = true;
+        showError = false;
         Create();
-        StateHasChanged();
     }
 
     private async Task Create()
@@ -118,16 +117,26 @@
         try
         {
             ConvertRowsToCourt();
-            CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode), 
-                                              centerModel.City, centerModel.Address, centerModel.Courts));
-            
-            centerModel.CenterName = "";
-            centerModel.ZipCode = "";
-            centerModel.City = "";
-            centerModel.Address = "";
-            centerModel.Courts = new List<CourtCreationDTO>();
-            courtRows = new List<CourtModel> { new CourtModel() };
-            isFormVisible = false;
+            try
+            {
+                await CenterService.CreateCenter(new CenterCreationDTO(centerModel.CenterName, int.Parse(centerModel.ZipCode),
+                    centerModel.City, centerModel.Address, centerModel.Courts));
+                centerModel.CenterName = "";
+                centerModel.ZipCode = "";
+                centerModel.City = "";
+                centerModel.Address = "";
+                centerModel.Courts = new List<CourtCreationDTO>();
+                courtRows = new List<CourtModel> { new CourtModel() };
+                isFormVisible = false;
+            }
+            catch (Exception e)
+            {
+                showError = true;
+            }
+            finally
+            {
+                StateHasChanged();
+            }
         }
         catch (Exception e)
         {
@@ -150,9 +159,9 @@
         centerModel.Courts = new List<CourtCreationDTO>();
         foreach (var row in courtRows)
         {
-            if (string.IsNullOrEmpty(row.CourtType) && string.IsNullOrEmpty(row.CourtNumber) && string.IsNullOrEmpty(row.CourtSponsor))
+            if (string.IsNullOrEmpty(row.CourtType) && string.IsNullOrEmpty(row.CourtNumber))
                 continue;
-            if (string.IsNullOrEmpty(row.CourtType) || string.IsNullOrEmpty(row.CourtNumber) || string.IsNullOrEmpty(row.CourtSponsor))
+            if (string.IsNullOrEmpty(row.CourtType) || string.IsNullOrEmpty(row.CourtNumber))
             {
                 throw new ArgumentException("Tag dig sammen");
             }
