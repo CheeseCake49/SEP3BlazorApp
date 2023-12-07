@@ -10,7 +10,7 @@
     </TitleContent>
     <DialogContent>
         <MudTextField @bind-Value="model.CenterName" Label="Name" Required="true"/>
-        <MudTextField @bind-Value="model.ZipCode" Label="Zip Code" Required="true"/>
+        <MudNumericField HideSpinButtons="true" @bind-Value="model.ZipCode" Label="Zip Code" Required="true"/>
         <MudTextField @bind-Value="model.City" Label="City" Required="true"/>
         <MudTextField @bind-Value="model.Address" Label="Address" Required="true"/>
     </DialogContent>
@@ -20,10 +20,16 @@
     </DialogActions>
 </MudDialog>
 
+@if (showError)
+{
+    <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="(() => showError=false)">Center name is already in use!</MudAlert>
+}
+
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public Center SelectedCenter { get; set; }
     EditCenterModel model = new();
+    bool showError;
 
 
     public class EditCenterModel
@@ -40,7 +46,7 @@
     
     protected override void OnInitialized()
     {
-
+        showError = false;
         model.CenterName = SelectedCenter.Name;
         model.ZipCode = SelectedCenter.ZipCode.ToString();
         model.City = SelectedCenter.City;
@@ -49,10 +55,18 @@
     
     private async Task SaveChanges()
     {
-        Center center = await CenterService.UpdateAsync(new CenterUpdatingDTO(SelectedCenter.Id,model.CenterName, int.Parse(model.ZipCode), model.City, model.Address));
+        try
+        {
+            Center center = await CenterService.UpdateAsync(new CenterUpdatingDTO(SelectedCenter.Id, model.CenterName, int.Parse(model.ZipCode), model.City, model.Address));
+            MudDialog.Close(DialogResult.Ok(center));
+        }
+        catch (Exception e)
+        {
+            showError = true;
+        }
         
-        MudDialog.Close(DialogResult.Ok(center));
     }
+    
 
     private void Cancel()
     {
