@@ -41,7 +41,7 @@
                                     <MudSelectItem Value="@("Single")" />
                                     <MudSelectItem Value="@("Double")" />
                                 </MudSelect>
-                                <MudTextField Label="Court Number" @bind-Value="row.CourtNumber" For="@(() => row.CourtNumber)" />
+                                <MudNumericField HideSpinButtons="true" Label="Court Number" @bind-Value="row.CourtNumber" For="@(() => row.CourtNumber)" />
                                 <MudTextField Label="Court Sponsor" @bind-Value="row.CourtSponsor" For="@(() => row.CourtSponsor)" />
                             </div>
                         }

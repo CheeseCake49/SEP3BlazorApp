@@ -10,7 +10,7 @@
             <MudSelectItem Value="@("Single")" />
             <MudSelectItem Value="@("Double")" />
         </MudSelect>
-        <MudTextField T="string" Label="Number" @bind-Value="_courtModel.CourtNumber" Required="true"></MudTextField>
+        <MudNumericField HideSpinButtons="true" Label="Number" @bind-Value="_courtModel.CourtNumber" Required="true"></MudNumericField>
         <MudTextField T="string" Label="Court Sponsor (Optional)" @bind-Value="_courtModel.CourtSponsor"></MudTextField>
     </DialogContent>
     <DialogActions>

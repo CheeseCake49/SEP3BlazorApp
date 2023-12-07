@@ -2,6 +2,7 @@
 @using global::Shared.Models
 @using HttpClients.ClientInterfaces
 @using BlazorApp1.Pages.Components
+@using System.Text.Json
 @inject ICourtService courtService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
@@ -30,6 +31,7 @@
         <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
         <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
         <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.ModeEditOutline" Color="Color.Primary" OnClick="@(() => ShowEditDialog(@context))"></MudIconButton>
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.CenterId, @context.CourtNumber))"></MudIconButton>
         </MudTd>
     </RowTemplate>
@@ -132,6 +134,37 @@
             var court = result.Data as Court;
             courts.Add(court);
             StateHasChanged();
+        }
+    }
+    
+    private async Task ShowEditDialog(Court court)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedCourt", court);
+
+        var dialog = DialogService.Show<EditCourtDialog>("Edit Court", parameters);
+
+        var result = await dialog.Result;
+
+        if (result != null && !result.Cancelled)
+        {
+            Console.WriteLine("Result is not null and not cancelled");
+
+            if (result.Data is Court updatedCourt)
+            {
+                Console.WriteLine($"Updated Court: {JsonSerializer.Serialize(updatedCourt)}");
+
+                if (updatedCourt != null)
+                {
+                    var existingCourt = courts.FirstOrDefault(c => c.Id == updatedCourt.Id);
+                    if (existingCourt != null)
+                    {
+                        existingCourt.CourtType = updatedCourt.CourtType;
+                        existingCourt.CourtNumber = updatedCourt.CourtNumber;
+                        existingCourt.CourtSponsor = updatedCourt.CourtSponsor;
+                    }
+                }
+            }
         }
     }
 

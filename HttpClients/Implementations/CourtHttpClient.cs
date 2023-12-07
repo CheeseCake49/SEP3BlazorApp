@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using HttpClients.ClientInterfaces;
 using Shared.DTOs;
@@ -55,5 +56,27 @@ public class CourtHttpClient : ICourtService
             string content = await response.Content.ReadAsStringAsync();
             throw new Exception(content);
         }
+    }
+    
+    public async Task<Court> UpdateAsync(CourtUpdatingDTO dto)
+    {
+        string dtoAsJson = JsonSerializer.Serialize(dto);
+        StringContent body = new StringContent(dtoAsJson, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PatchAsync("/court", body);
+        
+        string content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {  
+            throw new Exception(content);
+        }
+        
+        Court court = JsonSerializer.Deserialize<Court>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+
+        return court;
     }
 }
