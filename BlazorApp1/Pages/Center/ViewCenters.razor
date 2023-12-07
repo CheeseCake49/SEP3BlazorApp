@@ -3,6 +3,7 @@
 @inject ICenterService CenterService
 @using global::Shared.Models
 @using BlazorApp1.Pages.Components
+@using System.Text.Json
 @inject HttpClient httpClient
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
@@ -33,6 +34,7 @@
         <MudTd DataLabel="City">@context.City</MudTd>
         <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
         <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.ModeEditOutline" Color="Color.Primary" OnClick="@(() => ShowEditDialog(@context))"></MudIconButton>
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.Id, @context.Name))"></MudIconButton>
         </MudTd>
     </RowTemplate>
@@ -41,17 +43,17 @@
     </PagerContent>
 </MudTable>
 
-
 @code {
     private string msg = "";
     private string searchString1 = "";
     private Center selectedItem1 = null;
     private HashSet<Center> selectedItems = new HashSet<Center>();
-    
+
     private int centerIdToDelete;
     private string centerNameToDelete;
 
     private List<Center> centers = new List<Center>();
+    private Center selectedCenterForEdit;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,7 +67,7 @@
             msg = e.Message;
         }
     }
-    
+
     private void AccessCenterDashboard(int centerId)
     {
         NavigationManager.NavigateTo($"/CenterDashboard/{centerId}");
@@ -83,11 +85,11 @@
             return true;
         return false;
     }
-    
+
     private async Task ShowDeleteConfirmation(int id, string name)
     {
-    centerIdToDelete = id;
-    centerNameToDelete = name;
+        centerIdToDelete = id;
+        centerNameToDelete = name;
 
         var parameters = new DialogParameters<Dialog>();
         parameters.Add(x => x.ContentText, $"Are you sure you want to delete {centerNameToDelete}?");
@@ -96,28 +98,61 @@
 
         var options = new DialogOptions()
         {
-            CloseButton = true, 
+            CloseButton = true,
         };
 
         var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
 
-    if (result.Cancelled)
-    {
-        // Do nothing
-    }
-    else
-    {
-        // User confirmed deletion
-        try
+        if (result.Cancelled)
         {
-            CenterService.DeleteCenter(centerIdToDelete);
-            centers.RemoveAll(c => c.Id == centerIdToDelete);
+    // Do nothing
         }
-        catch (Exception e)
+        else
         {
-            Console.WriteLine(e);
+    // User confirmed deletion
+            try
+            {
+                CenterService.DeleteCenter(centerIdToDelete);
+                centers.RemoveAll(c => c.Id == centerIdToDelete);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
-}
-    
+
+    private async Task ShowEditDialog(Center center)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedCenter", center);
+
+        var dialog = DialogService.Show<EditCenterDialog>("Edit Center", parameters);
+
+        var result = await dialog.Result;
+
+        if (result != null && !result.Cancelled)
+        {
+            Console.WriteLine("Result is not null and not cancelled");
+
+            if (result.Data is Center updatedCenter)
+            {
+                Console.WriteLine($"Updated Center: {JsonSerializer.Serialize(updatedCenter)}");
+
+    // Ensure that updatedCenter is not null before using it
+                if (updatedCenter != null)
+                {
+                    var existingCenter = centers.FirstOrDefault(c => c.Id == updatedCenter.Id);
+                    if (existingCenter != null)
+                    {
+                        existingCenter.Name = updatedCenter.Name;
+                        existingCenter.ZipCode = updatedCenter.ZipCode;
+                        existingCenter.City = updatedCenter.City;
+                        existingCenter.Address = updatedCenter.Address;
+                    }
+                }
+            }
+        }
+    }
+
 }
