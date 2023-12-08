@@ -56,8 +56,8 @@
     {
         try
         {
-            Console.WriteLine($"Updating Court: {JsonSerializer.Serialize(new CourtUpdatingDTO(SelectedCourt.CenterId, model.CourtType, model.CourtNumber, model.CourtSponsor))}");
-            Court court = await CourtService.UpdateAsync(new CourtUpdatingDTO(SelectedCourt.CenterId, model.CourtType, model.CourtNumber, model.CourtSponsor));
+            Console.WriteLine($"Updating Court: {JsonSerializer.Serialize(new CourtUpdatingDTO(SelectedCourt.Id, SelectedCourt.CenterId ,model.CourtType, model.CourtNumber, model.CourtSponsor))}");
+            Court court = await CourtService.UpdateAsync(new CourtUpdatingDTO(SelectedCourt.Id, SelectedCourt.CenterId, model.CourtType, model.CourtNumber, model.CourtSponsor));
             MudDialog.Close(DialogResult.Ok(court));
         }
         catch (Exception e)
