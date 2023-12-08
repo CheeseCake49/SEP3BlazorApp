@@ -125,8 +125,7 @@
         var dialog = DialogService.Show<AddCourtDialog>("Add Court", parameters);
 
         var result = await dialog.Result;
-
-
+        
         if (!result.Canceled)
         {
             var court = result.Data as Court;

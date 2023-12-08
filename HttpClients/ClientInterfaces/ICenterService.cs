@@ -9,4 +9,5 @@ public interface ICenterService
     Task<Center> CreateCenter(CenterCreationDTO centerCreationDTO);
     Task DeleteCenter(int id);
     Task<List<Center>> GetCentersAsync();
+    Task<string> AddCenterAdminAsync(CenterAdminDTO dto);
 }

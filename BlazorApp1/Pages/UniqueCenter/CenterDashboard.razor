@@ -1,23 +1,64 @@
 @page "/centerdashboard/{id:int}"
+@using global::Shared.Models
+@using HttpClients.ClientInterfaces
+@using BlazorApp1.Pages.Components
 @inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IDialogService DialogService
+
 
 <h3>INSERT NAME Dashboard</h3>
 
-<MudButton @onclick="() => GoToViewCourts(Id)">Click me!</MudButton>
+<MudButton @onclick="() => GoToViewCourts(Id)">View Courts</MudButton>
+
+<MudCard>
+    <MudList>
+        @foreach (User user in admins)
+        {
+            <MudListItem>@user.Name ( @user.Username )</MudListItem>
+        }
+    </MudList>
+    
+    <MudButton @onclick="() => AddCenterAdmin()">Add Center Admin</MudButton>
+</MudCard>
 
 @code {
     
     [Parameter]
     public int Id { get; set; }
-    
-    protected override void OnInitialized()
+
+    private List<User> admins = new List<User>();
+    private List<User> users = new List<User>();
+
+    protected override async void OnInitialized()
     {
+        admins = await userService.GetCenterAdminsAsync(Id);
+        users = await userService.GetAllUsers();
+        StateHasChanged();
         Console.WriteLine($"CenterDashboard {Id} Initialized");
     }
     
     private void GoToViewCourts(int id)
     {
         NavigationManager.NavigateTo($"centerdashboard/{id}/viewcourts");
+    }
+
+    private async void AddCenterAdmin()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Users", users);
+        parameters.Add("CenterId", Id);
+
+        var dialog = DialogService.Show<AddCenterAdminDialog>("Add Center Admin", parameters);
+        
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var username = result.Data as string;
+            admins.Add(users.FirstOrDefault(u => u.Username == username));
+            StateHasChanged();
+        }
     }
     
 }
