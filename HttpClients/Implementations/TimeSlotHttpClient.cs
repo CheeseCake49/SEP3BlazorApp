@@ -30,4 +30,20 @@ public class TimeSlotHttpClient : ITimeSlotService
         })!;
         return timeSlot;
     }
+
+    public async Task<List<TimeSlot>> GetTimeSlots(int courtId)
+    {
+        HttpResponseMessage response = await client.GetAsync($"/timeslot/{courtId}");
+        string content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(content);
+        }
+        
+        List<TimeSlot> timeSlots = JsonSerializer.Deserialize<List<TimeSlot>>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+        return timeSlots;
+    }
 }
