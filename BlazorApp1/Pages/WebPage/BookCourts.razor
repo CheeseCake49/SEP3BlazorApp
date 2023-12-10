@@ -6,14 +6,17 @@
 <MudTable Items="@timeSlots" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
     <HeaderContent>
         <MudTh>6</MudTh>
+        <MudTh>7</MudTh>
+        <MudTh>8</MudTh>
+        <MudTh>9</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudChipSet MultiSelection="true"></MudChipSet>
         @foreach (var timeSlot in timeSlots)
         {
-        <MudTd>
-            <MudChip Text="" Value="context.startTime" Variant="Variant.Text" Color="Color.Default" SelectedColor="Color.Primary"></MudChip>
-        </MudTd>
+            <MudTd>
+                Test
+            </MudTd>
         }
     </RowTemplate>
 </MudTable>

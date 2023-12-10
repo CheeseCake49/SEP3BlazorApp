@@ -13,6 +13,7 @@ builder.Services.AddScoped<ICenterService, CenterHttpClient>();
 builder.Services.AddScoped<ICourtService, CourtHttpClient>();
 builder.Services.AddScoped<IBookingService, BookingHttpClient>();
 builder.Services.AddScoped<IBookingAddOnService, BookingAddOnHttpClient>();
+builder.Services.AddScoped<ITimeSlotService, TimeSlotHttpClient>();
 
 builder.Services.AddScoped(
     sp => 
