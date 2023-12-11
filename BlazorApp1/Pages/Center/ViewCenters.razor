@@ -10,39 +10,43 @@
 
 <PageTitle>View Centers</PageTitle>
 
-
-<MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">Centers</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>ID</MudTh>
-        <MudTh>Name</MudTh>
-        <MudTh>No. of Courts</MudTh>
-        <MudTh>City</MudTh>
-        <MudTh>Zip Code</MudTh>
-        <MudTh></MudTh>
-        <MudTh></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="ID">@context.Id</MudTd>
-        <MudTd DataLabel="Name" @onclick="() => AccessCenterDashboard(context.Id)">@context.Name</MudTd>
-        <MudTd DataLabel="Courts">@context.Courts.Count</MudTd>
-        <MudTd DataLabel="City">@context.City</MudTd>
-        <MudTd DataLabel="Zip Code">@context.ZipCode</MudTd>
-        <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.Id, @context.Name))"></MudIconButton>
-        </MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+<AuthorizeView Roles="Admin, Customer">
+    <MudTable Items="@centers" Filter="new Func<Center, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Centers</MudText>
+            <MudSpacer/>
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>No. of Courts</MudTh>
+            <MudTh>City</MudTh>
+            <MudTh>Zip Code</MudTh>
+            <MudTh></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate Context="selected">
+            <MudTd DataLabel="ID">@selected.Id</MudTd>
+            <MudTd DataLabel="Name" @onclick="() => AccessCenterDashboard(selected.Id)">@selected.Name</MudTd>
+            <MudTd DataLabel="Courts">@selected.Courts.Count</MudTd>
+            <MudTd DataLabel="City">@selected.City</MudTd>
+            <MudTd DataLabel="Zip Code">@selected.ZipCode</MudTd>
+                <MudTd>
+                    <MudIconButton Disabled="deleteButtonsDisabled" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@selected.Id, @selected.Name))"></MudIconButton>
+                </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+</AuthorizeView>
 
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    
     private string msg = "";
     private string searchString1 = "";
     private Center selectedItem1 = null;
@@ -52,12 +56,30 @@
     private string centerNameToDelete;
 
     private List<Center> centers = new List<Center>();
+    private bool deleteButtonsDisabled = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            centers = await CenterService.GetCentersAsync();
+            var authState = await authenticationState;
+            var authUser = authState.User;
+            List<Center> allCenters = await CenterService.GetCentersAsync();
+            if (authUser.IsInRole("Admin"))
+            {
+                centers = allCenters;
+                deleteButtonsDisabled = false;
+            }
+            else
+            {
+                foreach (Center center in allCenters)
+                {
+                    if (authUser.HasClaim($"Center{center.Id}", center.Id.ToString()))
+                    {
+                        centers.Add(center);
+                    }
+                }
+            }
         }
         catch (Exception e)
         {

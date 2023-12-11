@@ -8,32 +8,48 @@
 
 
 <h3>INSERT NAME Dashboard</h3>
-
-<MudButton @onclick="() => GoToViewCourts(Id)">View Courts</MudButton>
-
-<MudCard>
-    <MudList>
-        @foreach (User user in admins)
-        {
-            <MudListItem>@user.Name ( @user.Username )</MudListItem>
-        }
-    </MudList>
+@if (hasAccess)
+{
+    <MudButton @onclick="() => GoToViewCourts(Id)">View Courts</MudButton>
     
-    <MudButton @onclick="() => AddCenterAdmin()">Add Center Admin</MudButton>
-</MudCard>
+    <MudCard>
+        <MudList>
+            @foreach (User user in admins)
+            {
+                <MudListItem>@user.Name ( @user.Username )</MudListItem>
+            }
+        </MudList>
+
+        <MudButton @onclick="() => AddCenterAdmin()">Add Center Admin</MudButton>
+    </MudCard>
+    
+}
 
 @code {
     
     [Parameter]
     public int Id { get; set; }
+    
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     private List<User> admins = new List<User>();
     private List<User> users = new List<User>();
+
+    private bool hasAccess = false;
 
     protected override async void OnInitialized()
     {
         admins = await userService.GetCenterAdminsAsync(Id);
         users = await userService.GetAllUsers();
+        foreach (User user in admins)
+        {
+            users.Remove(users.FirstOrDefault(u => u.Username == user.Username));
+        }
+
+        var authState = await authenticationState;
+        var authUser = authState.User;
+        hasAccess = authUser.HasClaim($"Center{Id}", Id.ToString()) || authUser.IsInRole("Admin");
         StateHasChanged();
         Console.WriteLine($"CenterDashboard {Id} Initialized");
     }
@@ -56,7 +72,9 @@
         if (!result.Canceled)
         {
             var username = result.Data as string;
-            admins.Add(users.FirstOrDefault(u => u.Username == username));
+            User user = users.FirstOrDefault(u => u.Username == username);
+            admins.Add(user);
+            users.Remove(user);
             StateHasChanged();
         }
     }
