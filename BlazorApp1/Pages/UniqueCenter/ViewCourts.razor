@@ -154,30 +154,23 @@
         parameters.Add("SelectedCourt", court);
 
         var dialog = DialogService.Show<EditCourtDialog>("Edit Court", parameters);
-
         var result = await dialog.Result;
 
         if (result != null && !result.Cancelled)
         {
-            Console.WriteLine("Result is not null and not cancelled");
-
             if (result.Data is Court updatedCourt)
             {
-                Console.WriteLine($"Updated Court: {JsonSerializer.Serialize(updatedCourt)}");
-
-                if (updatedCourt != null)
+                var existingCourt = courts.FirstOrDefault(c => c.Id == updatedCourt.Id);
+                if (existingCourt != null)
                 {
-                    var existingCourt = courts.FirstOrDefault(c => c.Id == updatedCourt.Id);
-                    if (existingCourt != null)
-                    {
-                        existingCourt.CourtType = updatedCourt.CourtType;
-                        existingCourt.CourtNumber = updatedCourt.CourtNumber;
-                        existingCourt.CourtSponsor = updatedCourt.CourtSponsor;
-                    }
+                    existingCourt.CourtType = updatedCourt.CourtType;
+                    existingCourt.CourtNumber = updatedCourt.CourtNumber;
+                    existingCourt.CourtSponsor = updatedCourt.CourtSponsor;
                 }
             }
         }
     }
+
 
 }
 

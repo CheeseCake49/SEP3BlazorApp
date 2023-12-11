@@ -143,31 +143,23 @@
         parameters.Add("SelectedCenter", center);
 
         var dialog = DialogService.Show<EditCenterDialog>("Edit Center", parameters);
-
         var result = await dialog.Result;
 
         if (result != null && !result.Cancelled)
         {
-            Console.WriteLine("Result is not null and not cancelled");
-
             if (result.Data is Center updatedCenter)
             {
-                Console.WriteLine($"Updated Center: {JsonSerializer.Serialize(updatedCenter)}");
-
-    // Ensure that updatedCenter is not null before using it
-                if (updatedCenter != null)
+                var existingCenter = centers.FirstOrDefault(c => c.Id == updatedCenter.Id);
+                if (existingCenter != null)
                 {
-                    var existingCenter = centers.FirstOrDefault(c => c.Id == updatedCenter.Id);
-                    if (existingCenter != null)
-                    {
-                        existingCenter.Name = updatedCenter.Name;
-                        existingCenter.ZipCode = updatedCenter.ZipCode;
-                        existingCenter.City = updatedCenter.City;
-                        existingCenter.Address = updatedCenter.Address;
-                    }
+                    existingCenter.Name = updatedCenter.Name;
+                    existingCenter.ZipCode = updatedCenter.ZipCode;
+                    existingCenter.City = updatedCenter.City;
+                    existingCenter.Address = updatedCenter.Address;
                 }
             }
         }
     }
+
 
 }
