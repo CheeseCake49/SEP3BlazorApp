@@ -1,0 +1,59 @@
+﻿@page "/"
+@using HttpClients.ClientInterfaces
+@using global::Shared.Models
+@inject ICenterService CenterService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Herskab Padel</PageTitle>
+
+<MudStack AlignItems="AlignItems.Stretch" Justify="Justify.Center">
+    <MudText Typo="Typo.h2" Align="Align.Center">Where are you playing today?</MudText>
+    <MudItem>
+        <MudAutocomplete T="string" Label="Find Center" @bind-Value="value1" SearchFunc="@Search1"
+                         ShowProgressIndicator="true" FullWidth="true">
+            <ProgressIndicatorTemplate>
+                <MudProgressLinear Size="Size.Large" Indeterminate="true" Color="SelectedColor"/>
+            </ProgressIndicatorTemplate>
+        </MudAutocomplete>
+    </MudItem>
+</MudStack>
+<MudStack AlignItems="AlignItems.Center">
+    <MudButton
+               Target="_blank"
+               Variant="Variant.Text"
+               EndIcon="@Icons.Material.Filled.NextPlan"
+               Color="Color.Secondary"
+               Style="text-transform:none"
+                OnClick="NavigateToCenter"
+               Size="Size.Large">
+        GO!
+    </MudButton>
+</MudStack>
+
+@code {
+    private string value1;
+    public Color SelectedColor { get; set; } = Color.Secondary;
+    private IEnumerable<Center> centers = new List<Center>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        centers = await CenterService.GetCentersAsync();
+    }
+    
+
+    private async Task<IEnumerable<string>> Search1(string value)
+    {
+        if (!centers.Any())
+            centers = await CenterService.GetCentersAsync();
+        await Task.Delay(1000);
+        
+        if (string.IsNullOrEmpty(value))
+            return centers.Select(x => x.Name);
+        return centers.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name);
+    }
+    
+    private void NavigateToCenter()
+    {
+        NavigationManager.NavigateTo($"/webpageindex/bookcourts");
+    }
+}

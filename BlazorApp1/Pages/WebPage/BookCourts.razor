@@ -2,34 +2,110 @@
 @using HttpClients.ClientInterfaces
 @using global::Shared.Models
 @inject ITimeSlotService timeSlotService
+@inject ICourtService courtService
 
-<MudTable Items="@timeSlots" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
-    <HeaderContent>
-        <MudTh>6</MudTh>
-        <MudTh>7</MudTh>
-        <MudTh>8</MudTh>
-        <MudTh>9</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudChipSet MultiSelection="true"></MudChipSet>
-        @foreach (var timeSlot in timeSlots)
-        {
-            <MudTd>
-                Test
-            </MudTd>
-        }
-    </RowTemplate>
-</MudTable>
+<MudContainer Class="d-flex justify-center">
+<MudChipSet @bind-SelectedChips="selected" MultiSelection="true">
+    <MudTable Elevation="1" Items="@courts" Hover="false" Dense="true"
+              LoadingProgressColor="Color.Info" Bordered="true" HeaderClass="table-head-bordered">
+        <HeaderContent>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">6</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">7</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">8</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">9</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">10</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">11</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">12</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">13</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">14</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">15</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">16</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">17</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">18</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">19</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">20</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">21</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">22</MudTh>
+            <MudTh Class="pa-0 ma-0" Style="text-align: center">23</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            @foreach (var timeSlot in context.TimeSlots)
+            {
+                int index = context.TimeSlots.IndexOf(timeSlot);
+                if (index % 2 == 0 && index < context.TimeSlots.Count - 1)
+                {
+                    <MudTd Class="pa-0">
+                        
+                        <MudChip
+                            Class="d-inline-flex ma-0"
+                            Style="width: 25px"
+                            Elevation="0"
+                            Value="@timeSlot.startTime.TimeOfDay"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            SelectedColor="Color.Info">
+                        </MudChip>
+
+                        <MudChip
+                            Class="d-inline-flex ma-0"
+                            Style="width: 25px"
+                            Elevation="0"
+                            Value="@context.TimeSlots[index + 1].startTime.TimeOfDay"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            SelectedColor="Color.Info">
+                        </MudChip>
+
+                    </MudTd>
+                }
+                else if (index % 2 == 0 && index == context.TimeSlots.Count - 1)
+                {
+                    <MudTd Class="pa-0">
+                        
+                        <MudChip
+                            Class="d-inline-flex ma-0"
+                            Style="width: 25px"
+                            Elevation="0"
+                            Value="@timeSlot.startTime.TimeOfDay"
+                            Variant="Variant.Filled"
+                            Color="Color.Secondary"
+                            SelectedColor="Color.Info">
+                        </MudChip>
+                        
+                    </MudTd>
+                }
+            }
+        </RowTemplate>
+    </MudTable>
+</MudChipSet>
+</MudContainer>
+
+<div class="d-flex justify-center mt-2">
+    @if (selected != null && selected.Length>0)
+    {
+        <MudText>Time slots selected: @string.Join(", ", selected.Select(chip=>chip.Value)).</MudText>
+    }
+    else
+    {
+        <MudText>No time slots selected.</MudText>
+    }
+</div>
 
 
 @code { 
-    private IEnumerable<TimeSlot> timeSlots = new List<TimeSlot>();
+    private List<Court> courts = new List<Court>();
+    MudChip[] selected;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            timeSlots = await timeSlotService.GetTimeSlots(15);
+            courts = await courtService.GetCourtsAsync(1);
+            foreach (Court court in courts)
+            {
+                court.TimeSlots = await timeSlotService.GetTimeSlots(court.Id);
+            }
+            StateHasChanged();
         }
         catch (Exception ex)
         {
