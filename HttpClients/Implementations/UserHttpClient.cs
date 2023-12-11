@@ -32,13 +32,9 @@ public class UserHttpClient : IUserService
         return user;
     }
     
-    public async Task<IEnumerable<User>> GetAllUsers(string? usernameContains = null)
+    public async Task<List<User>> GetAllUsers()
     {
         string uri = "/user";
-        if (!string.IsNullOrEmpty(usernameContains))
-        {
-            uri += $"?username={usernameContains}";
-        }
         HttpResponseMessage response = await client.GetAsync(uri);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
@@ -46,11 +42,28 @@ public class UserHttpClient : IUserService
             throw new Exception(result);
         }
 
-        IEnumerable<User> users = JsonSerializer.Deserialize<IEnumerable<User>>(result, new JsonSerializerOptions
+        List<User> users = JsonSerializer.Deserialize<List<User>>(result, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;
         return users;
     }
+
+    public async Task<List<User>> GetCenterAdminsAsync(int centerId)
+    {
+        HttpResponseMessage response = await client.GetAsync($"/user/admins/{centerId}");
+        string result = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(result);
+        }
+
+        List<User>? admins = JsonSerializer.Deserialize<List<User>>(result, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+        return admins ?? new List<User>();
+    }   
     
 }

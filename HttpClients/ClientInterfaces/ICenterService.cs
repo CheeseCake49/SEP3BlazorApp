@@ -11,4 +11,5 @@ public interface ICenterService
     Task<List<Center>> GetCentersAsync();
     Task<Center> UpdateAsync(CenterUpdatingDTO dto);
     Task<Center?> GetByIdAsync(int id);
+    Task<string> AddCenterAdminAsync(CenterAdminDTO dto);
 }

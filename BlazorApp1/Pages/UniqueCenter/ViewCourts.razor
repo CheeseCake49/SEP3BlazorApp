@@ -2,49 +2,54 @@
 @using global::Shared.Models
 @using HttpClients.ClientInterfaces
 @using BlazorApp1.Pages.Components
-@using System.Text.Json
 @inject ICourtService courtService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
-
-<MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-    <ToolBarContent>
-        <MudPaper Class="mr-6" Elevation="0">
-            <MudText Typo="Typo.h6">Courts</MudText>
-        </MudPaper>
-        <MudButton @onclick="AddCourtDialog" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
-            Add Court
-        </MudButton>
-        <MudSpacer/>
-        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>Court Type</MudTh>
-        <MudTh>Court Number</MudTh>
-        <MudTh>Court Sponsor</MudTh>
-        <MudTh></MudTh>
-        <MudTh></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="Court Type">@context.CourtType</MudTd>
-        <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
-        <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
-        <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.ModeEditOutline" Color="Color.Primary" OnClick="@(() => ShowEditDialog(@context))"></MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.CenterId, @context.CourtNumber))"></MudIconButton>
-        </MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+@if (hasAccess)
+{
+    <MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudPaper Class="mr-6" Elevation="0">
+                <MudText Typo="Typo.h6">Courts</MudText>
+            </MudPaper>
+            <MudButton @onclick="AddCourtDialog" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+                Add Court
+            </MudButton>
+            <MudSpacer/>
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Court Type</MudTh>
+            <MudTh>Court Number</MudTh>
+            <MudTh>Court Sponsor</MudTh>
+            <MudTh></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Court Type">@context.CourtType</MudTd>
+            <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
+            <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.ModeEditOutline" Color="Color.Primary" OnClick="@(() => ShowEditDialog(@context))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.CenterId, @context.CourtNumber))"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    
     private string msg = "";
     private string searchString1 = "";
     private Court selectedItem1 = null;
     private HashSet<Court> selectedItems = new HashSet<Court>();
+    private bool hasAccess = false;
 
 
     [Parameter]
@@ -62,6 +67,13 @@
         try
         {
             courts = await courtService.GetCourtsAsync(Id);
+
+            var authState = await authenticationState;
+            var authUser = authState.User;
+            if (authUser.HasClaim($"Center{Id}", Id.ToString()) || authUser.IsInRole("Admin"))
+            {
+                hasAccess = true;
+            }
         }
         catch (Exception e)
         {
@@ -95,7 +107,7 @@
 
         var options = new DialogOptions()
         {
-            CloseButton = true, 
+            CloseButton = true
         };
 
         var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
@@ -127,8 +139,7 @@
         var dialog = DialogService.Show<AddCourtDialog>("Add Court", parameters);
 
         var result = await dialog.Result;
-
-
+        
         if (!result.Canceled)
         {
             var court = result.Data as Court;

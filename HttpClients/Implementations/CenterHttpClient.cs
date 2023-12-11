@@ -100,4 +100,22 @@ public class CenterHttpClient : ICenterService
 
         return center;
     }
+
+    public async Task<string> AddCenterAdminAsync(CenterAdminDTO dto)
+    {
+        HttpResponseMessage response = await client.PostAsJsonAsync($"/center/{dto.centerId}/admins", dto);
+        string content = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(content);
+        }
+
+        Console.WriteLine(content);
+
+        CenterAdminDTO newAdmin = JsonSerializer.Deserialize<CenterAdminDTO>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+        return newAdmin.username;
+    }
 }
