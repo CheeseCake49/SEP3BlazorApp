@@ -1,4 +1,4 @@
-@page "//BookCourts/{id:int}"
+@page "/BookCourts/{id:int}"
 @using HttpClients.ClientInterfaces
 @using global::Shared.Models
 @inject ITimeSlotService timeSlotService
@@ -9,28 +9,28 @@
     <MudStack>
         
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Stretch">
-        <MudCard Style="width: 33%">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h5">Smashy</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Enellerandenvej 12</MudText>
-                <MudText Typo="Typo.body1">8660 Skanderborg</MudText>
-                <MudText Typo="Typo.body1">88 88 88 88</MudText>
-            </MudCardContent>
-        </MudCard>
-        <MudCard Style="width: 33%">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h5">Opening Hours</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Monday-Sunday: 06:00-24:00</MudText>
-            </MudCardContent>
-        </MudCard>
+            <MudCard Style="width: 33%">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Smashy</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body1">Enellerandenvej 12</MudText>
+                    <MudText Typo="Typo.body1">8660 Skanderborg</MudText>
+                    <MudText Typo="Typo.body1">88 88 88 88</MudText>
+                </MudCardContent>
+            </MudCard>
+            <MudCard Style="width: 33%">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5">Opening Hours</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body1">Monday-Sunday: 06:00-24:00</MudText>
+                </MudCardContent>
+            </MudCard>
             <MudCard Style="width: 33%">
                 <MudCardHeader>
                     <CardHeaderContent>
@@ -42,7 +42,8 @@
                     <MudText Typo="Typo.body1">Double Court 2 </MudText>
                 </MudCardContent>
             </MudCard>
-            </MudStack>
+            <MudDatePicker PickerVariant="PickerVariant.Static" Rounded="true" Elevation="1" Date="selectedDate" DateChanged="ClearSelection" />
+        </MudStack>
 
         <MudChipSet @bind-SelectedChips="selected" MultiSelection="true">
             <MudTable Elevation="1" Items="@courts" Hover="false" Dense="true"
@@ -70,51 +71,53 @@
                 <RowTemplate>
                     @foreach (var timeSlot in context.TimeSlots)
                     {
-                        int index = context.TimeSlots.IndexOf(timeSlot);
-                        if (index % 2 == 0 && index < context.TimeSlots.Count - 1)
-                        {
-                            <MudTd Class="pa-0">
+                        if (timeSlot.startTime.Date == selectedDate) {
+                            int index = context.TimeSlots.IndexOf(timeSlot);
+                            if (index % 2 == 0 && index < context.TimeSlots.Count - 1)
+                            {
+                                <MudTd Class="pa-0">
 
-                                <MudChip
-                                    Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
-                                    Style="width: 25px"
-                                    Elevation="0"
-                                    Value="@timeSlot.startTime.ToString("t")"
-                                    Variant="Variant.Filled"
-                                    Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
-                                    SelectedColor="Color.Info"
-                                    Disabled="timeSlot.isBooked">
-                                </MudChip>
+                                    <MudChip
+                                        Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
+                                        Style="width: 25px"
+                                        Elevation="0"
+                                        Value="@timeSlot.startTime.ToString("t")"
+                                        Variant="Variant.Filled"
+                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        SelectedColor="Color.Info"
+                                        Disabled="timeSlot.isBooked">
+                                    </MudChip>
 
-                                <MudChip
-                                    Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
-                                    Style="width: 25px"
-                                    Elevation="0"
-                                    Value="@context.TimeSlots[index + 1].startTime.ToString("t")"
-                                    Variant="Variant.Filled"
-                                    Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
-                                    SelectedColor="Color.Info"
-                                    Disabled="timeSlot.isBooked">
-                                </MudChip>
+                                    <MudChip
+                                        Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
+                                        Style="width: 25px"
+                                        Elevation="0"
+                                        Value="@context.TimeSlots[index + 1].startTime.ToString("t")"
+                                        Variant="Variant.Filled"
+                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        SelectedColor="Color.Info"
+                                        Disabled="timeSlot.isBooked">
+                                    </MudChip>
 
-                            </MudTd>
-                        }
-                        else if (index % 2 == 0 && index == context.TimeSlots.Count - 1)
-                        {
-                            <MudTd Class="pa-0">
+                                </MudTd>
+                            }
+                            else if (index % 2 == 0 && index == context.TimeSlots.Count - 1)
+                            {
+                                <MudTd Class="pa-0">
 
-                                <MudChip
-                                    Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
-                                    Style="width: 25px"
-                                    Elevation="0"
-                                    Value="@timeSlot.startTime.ToString("t")"
-                                    Variant="Variant.Filled"
-                                    Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
-                                    SelectedColor="Color.Info"
-                                    Disabled="timeSlot.isBooked">
-                                </MudChip>
+                                    <MudChip
+                                        Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
+                                        Style="width: 25px"
+                                        Elevation="0"
+                                        Value="@timeSlot.startTime.ToString("t")"
+                                        Variant="Variant.Filled"
+                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        SelectedColor="Color.Info"
+                                        Disabled="timeSlot.isBooked">
+                                    </MudChip>
 
-                            </MudTd>
+                                </MudTd>
+                            }
                         }
                     }
                 </RowTemplate>
@@ -132,8 +135,14 @@
             }
         </div>
 
+        
     </MudStack>
 </MudContainer>
+<MudStack AlignItems="AlignItems.Center">
+    <MudButton @onclick="CreateBooking" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+        Book
+    </MudButton>
+</MudStack>
 
 
 @code { 
@@ -141,11 +150,13 @@
     MudChip[] selected;
     [Parameter]
     public int Id { get; set; }
+    public DateTime? selectedDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            selectedDate = DateTime.Today;
             courts = await courtService.GetCourtsAsync(Id);
             foreach (Court court in courts)
             {
@@ -157,6 +168,18 @@
         {
             Console.WriteLine(ex.Message);
         }
+    }
+
+    public void ClearSelection(DateTime? newDate)
+    {
+        selectedDate = newDate;
+        selected = null;
+        StateHasChanged();
+    }
+
+    public async Task CreateBooking()
+    {
+        // TODO: Tjek om logget ind, derefter kalde booking metode
     }
 
 
