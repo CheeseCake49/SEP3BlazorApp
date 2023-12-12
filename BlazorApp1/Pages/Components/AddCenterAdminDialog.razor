@@ -1,0 +1,39 @@
+@using HttpClients.ClientInterfaces
+@inject ICenterService CenterService
+@using global::Shared.DTOs
+@using global::Shared.Models
+
+<MudDialog Style="width: 500px">
+    <DialogContent>
+        <MudSelect T="string" Label="User" @bind-Value="username" Required="true">
+            @foreach (User user in Users)
+            {
+                <MudSelectItem Value="user.Username" />
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="AddCenterAdmin">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+
+    [Parameter] public List<User> Users { get; set; }
+    [Parameter] public int CenterId { get; set; }
+    
+    string username;
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+
+    async Task AddCenterAdmin()
+    {
+        string newAdminUsername = await CenterService.AddCenterAdminAsync(new CenterAdminDTO(CenterId, username));
+        MudDialog.Close(DialogResult.Ok(newAdminUsername));
+    }
+    
+    void Cancel() => MudDialog.Cancel();
+    
+}

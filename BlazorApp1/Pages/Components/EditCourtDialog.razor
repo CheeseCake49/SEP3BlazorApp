@@ -1,0 +1,76 @@
+@using HttpClients.ClientInterfaces
+@using global::Shared.DTOs
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using global::Shared.Models
+@inject ICourtService CourtService
+
+<MudDialog Style="width: 500px">
+    <TitleContent>
+        <DialogTitle>Edit Court</DialogTitle>
+    </TitleContent>
+    <DialogContent>
+        <MudSelect T="string" Label="Court Type" @bind-Value="model.CourtType" Required="true">
+            <MudSelectItem Value="@("Single")" />
+            <MudSelectItem Value="@("Double")" />
+        </MudSelect>
+        <MudNumericField HideSpinButtons="true" Label="Number" @bind-Value="model.CourtNumber" Required="true"></MudNumericField>
+        <MudTextField T="string" Label="Court Sponsor (Optional)" @bind-Value="model.CourtSponsor"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SaveChanges">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@if (showError)
+{
+    <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="(() => showError=false)">Court number is already in use!</MudAlert>
+}
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Court SelectedCourt { get; set; }
+    EditCourtModel model = new();
+    bool showError;
+
+
+    public class EditCourtModel
+    {
+        [Required(ErrorMessage = "Court Type is required.")]
+        public string CourtType { get; set; }
+        [Required(ErrorMessage = "Court number is required.")]
+        public int CourtNumber { get; set; }
+        public string CourtSponsor { get; set; }
+    }
+    
+    protected override void OnInitialized()
+    {
+        showError = false;
+        model.CourtType = SelectedCourt.CourtType;
+        model.CourtNumber = SelectedCourt.CourtNumber;
+        model.CourtSponsor = SelectedCourt.CourtSponsor;
+    }
+    
+    private async Task SaveChanges()
+    {
+        try
+        {
+            Console.WriteLine($"Updating Court: {JsonSerializer.Serialize(new CourtUpdatingDTO(SelectedCourt.Id, SelectedCourt.CenterId ,model.CourtType, model.CourtNumber, model.CourtSponsor))}");
+            Court court = await CourtService.UpdateAsync(new CourtUpdatingDTO(SelectedCourt.Id, SelectedCourt.CenterId, model.CourtType, model.CourtNumber, model.CourtSponsor));
+            MudDialog.Close(DialogResult.Ok(court));
+        }
+        catch (Exception e)
+        {
+            showError = true;
+        }
+        
+    }
+    
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+    
+}

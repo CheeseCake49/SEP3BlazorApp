@@ -1,0 +1,76 @@
+﻿@using HttpClients.ClientInterfaces
+@using global::Shared.DTOs
+@using System.ComponentModel.DataAnnotations
+@using global::Shared.Models
+@inject ICenterService CenterService
+
+<MudDialog Style="width: 500px">
+    <TitleContent>
+        <DialogTitle>Edit Center</DialogTitle>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="model.CenterName" Label="Name" Required="true"/>
+        <MudNumericField HideSpinButtons="true" @bind-Value="model.ZipCode" Label="Zip Code" Required="true"/>
+        <MudTextField @bind-Value="model.City" Label="City" Required="true"/>
+        <MudTextField @bind-Value="model.Address" Label="Address" Required="true"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="SaveChanges">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@if (showError)
+{
+    <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="(() => showError=false)">Center name is already in use!</MudAlert>
+}
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Center SelectedCenter { get; set; }
+    EditCenterModel model = new();
+    bool showError;
+
+
+    public class EditCenterModel
+    {
+        [Required(ErrorMessage = "Name is required.")]
+        public string CenterName { get; set; }
+        [Required(ErrorMessage = "Zip Code is required.")]
+        public string ZipCode { get; set; }
+        [Required(ErrorMessage = "City is required.")]
+        public string City { get; set; }
+        [Required(ErrorMessage = "Address is required.")]
+        public string Address { get; set; }
+    }
+    
+    protected override void OnInitialized()
+    {
+        showError = false;
+        model.CenterName = SelectedCenter.Name;
+        model.ZipCode = SelectedCenter.ZipCode.ToString();
+        model.City = SelectedCenter.City;
+        model.Address = SelectedCenter.Address;
+    }
+    
+    private async Task SaveChanges()
+    {
+        try
+        {
+            Center center = await CenterService.UpdateAsync(new CenterUpdatingDTO(SelectedCenter.Id, model.CenterName, int.Parse(model.ZipCode), model.City, model.Address));
+            MudDialog.Close(DialogResult.Ok(center));
+        }
+        catch (Exception e)
+        {
+            showError = true;
+        }
+        
+    }
+    
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+    
+}

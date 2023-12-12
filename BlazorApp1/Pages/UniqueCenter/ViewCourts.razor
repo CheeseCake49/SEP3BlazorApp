@@ -1,57 +1,79 @@
 @page "/centerdashboard/{id:int}/ViewCourts"
-@inject IDialogService DialogService
 @using global::Shared.Models
 @using HttpClients.ClientInterfaces
 @using BlazorApp1.Pages.Components
 @inject ICourtService courtService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
-
-<MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
-    <ToolBarContent>
-        <MudPaper Class="mr-6" Elevation="0">
-            <MudText Typo="Typo.h6">Courts</MudText>
-        </MudPaper>
-        <MudButton @onclick="AddCourtDialog" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
-            Add Court
-        </MudButton>
-        <MudSpacer/>
-        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>Court Type</MudTh>
-        <MudTh>Court Number</MudTh>
-        <MudTh>Court Sponsor</MudTh>
-        <MudTh></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="Court Type">@context.CourtType</MudTd>
-        <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
-        <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
-
+@if (hasAccess)
+{
+    <MudTable Items="@courts" Filter="new Func<Court, bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudPaper Class="mr-6" Elevation="0">
+                <MudText Typo="Typo.h6">Courts</MudText>
+            </MudPaper>
+            <MudButton @onclick="AddCourtDialog" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+                Add Court
+            </MudButton>
+            <MudSpacer/>
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Court Type</MudTh>
+            <MudTh>Court Number</MudTh>
+            <MudTh>Court Sponsor</MudTh>
+            <MudTh></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Court Type">@context.CourtType</MudTd>
+            <MudTd DataLabel="Court Number">@context.CourtNumber</MudTd>
+            <MudTd DataLabel="Court Sponsor">@context.CourtSponsor</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.ModeEditOutline" Color="Color.Primary" OnClick="@(() => ShowEditDialog(@context))"></MudIconButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ShowDeleteConfirmation(@context.CenterId, @context.CourtNumber))"></MudIconButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    
     private string msg = "";
     private string searchString1 = "";
     private Court selectedItem1 = null;
     private HashSet<Court> selectedItems = new HashSet<Court>();
+    private bool hasAccess = false;
 
 
     [Parameter]
     public int Id { get; set; }
 
+    private int _centerId;
+    private int _courtNumber;
+
+
     private List<Court> courts = new();
-    
+
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             courts = await courtService.GetCourtsAsync(Id);
+
+            var authState = await authenticationState;
+            var authUser = authState.User;
+            if (authUser.HasClaim($"Center{Id}", Id.ToString()) || authUser.IsInRole("Admin"))
+            {
+                hasAccess = true;
+            }
         }
         catch (Exception e)
         {
@@ -72,8 +94,43 @@
             return true;
         return false;
     }
-    
-    
+
+    private async Task ShowDeleteConfirmation(int centerId, int courtNumber)
+    {
+        _centerId = centerId;
+        _courtNumber = courtNumber;
+
+        var parameters = new DialogParameters<Dialog>();
+        parameters.Add(x => x.ContentText, $"Are you sure you want to delete court number: {_courtNumber}?");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions()
+        {
+            CloseButton = true
+        };
+
+        var result = await DialogService.Show<Dialog>("Delete Confirmation", parameters, options).Result;
+
+        if (result.Cancelled)
+        {
+    // Do nothing
+        }
+        else
+        {
+    // User confirmed deletion
+            try
+            {
+                courtService.DeleteCourt(_centerId, _courtNumber);
+                courts.Remove(courts.Find(court => court.CenterId == _centerId && court.CourtNumber == _courtNumber));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+    }
+
     private async Task AddCourtDialog()
     {
         var parameters = new DialogParameters();
@@ -83,7 +140,6 @@
 
         var result = await dialog.Result;
         
-        
         if (!result.Canceled)
         {
             var court = result.Data as Court;
@@ -92,4 +148,29 @@
         }
     }
     
+    private async Task ShowEditDialog(Court court)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedCourt", court);
+
+        var dialog = DialogService.Show<EditCourtDialog>("Edit Court", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Cancelled)
+        {
+            if (result.Data is Court updatedCourt)
+            {
+                var existingCourt = courts.FirstOrDefault(c => c.Id == updatedCourt.Id);
+                if (existingCourt != null)
+                {
+                    existingCourt.CourtType = updatedCourt.CourtType;
+                    existingCourt.CourtNumber = updatedCourt.CourtNumber;
+                    existingCourt.CourtSponsor = updatedCourt.CourtSponsor;
+                }
+            }
+        }
+    }
+
+
 }
+
