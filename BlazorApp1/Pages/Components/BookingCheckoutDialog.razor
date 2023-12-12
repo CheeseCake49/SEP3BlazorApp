@@ -1,0 +1,98 @@
+@using HttpClients.ClientInterfaces
+@using MudBlazor.Extensions
+@using global::Shared.Models
+@using global::Shared.DTOs
+@inject IBookingService BookingService
+
+
+<MudContainer Class="justify-center">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h2">Booking Summary</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+ 
+        <MudCardContent>
+ 
+            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">Date:</MudText>
+                <MudText Typo="Typo.body1">@(((TimeSlot)SelectedChips[0].Tag).StartTime.Date.ToString("dd.MM.yyyy"))</MudText>
+            </MudStack>
+ 
+            <MudStack Class="mt-5" Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">Court(s):</MudText>
+                <MudText Typo="Typo.body1"></MudText>
+            </MudStack>
+ 
+            <MudStack Class="mt-5" Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">Time slots:</MudText>
+                <MudText Typo="Typo.body1">@string.Join(", ", SelectedChips.Select(chip => ((TimeSlot)chip.Tag).StartTime.ToString("t")))</MudText>
+            </MudStack>
+
+ 
+            <MudStack Class="mt-7" Row="true" Justify="Justify.SpaceBetween">
+                <MudSelect T="int" Label="Rental Rackets">
+                    <MudSelectItem Value="@(1)" />
+                    <MudSelectItem Value="@(2)" />
+                    <MudSelectItem Value="@(3)" />
+                    <MudSelectItem Value="@(4)" />
+                    <MudSelectItem Value="@(5)" />
+                    <MudSelectItem Value="@(6)" />
+                    <MudSelectItem Value="@(7)" />
+                    <MudSelectItem Value="@(8)" />
+                </MudSelect>
+                <MudSelect T="int" Label="Can of Balls">
+                    <MudSelectItem Value="@(1)" />
+                    <MudSelectItem Value="@(2)" />
+                    <MudSelectItem Value="@(3)" />
+                    <MudSelectItem Value="@(4)" />
+                </MudSelect>
+            </MudStack>
+ 
+            <MudStack Class="mt-7" Row="true" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.h5">Total price:</MudText>
+                <MudText Typo="Typo.button"></MudText>
+            </MudStack>
+ 
+                    <MudStack Class="mt-10" Row="true" Justify="Justify.SpaceBetween">
+                        <MudButton @onclick="CancelBooking" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error">Cancel</MudButton>
+                        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Info" Size="Size.Large">Book</MudButton>
+                    </MudStack>
+ 
+        </MudCardContent>
+ 
+    </MudCard>
+</MudContainer>
+ 
+@code {
+    [Parameter]
+    public MudChip[] SelectedChips { get; set; }
+    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    
+    protected override void OnInitialized()
+    {
+        
+    }
+    
+    // private async Task ConfirmBooking()
+    // {
+    //     try
+    //     {
+    //         await BookingService.CreateBooking(new BookingCreationDTO())
+    //         MudDialog.Close(DialogResult.Ok(true));
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         Console.WriteLine(e);
+    //     }
+    //     
+    // }
+
+    private void CancelBooking()
+    {
+        MudDialog.Cancel();
+    }
+}

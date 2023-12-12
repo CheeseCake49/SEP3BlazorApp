@@ -1,8 +1,12 @@
 @page "/BookCourts/{id:int}"
 @using HttpClients.ClientInterfaces
 @using global::Shared.Models
-@inject ITimeSlotService timeSlotService
-@inject ICourtService courtService
+@using BlazorApp1.Pages.Components
+@inject ITimeSlotService TimeSlotService
+@inject ICourtService CourtService
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+
 
 
 <MudContainer Class="d-flex justify-center">
@@ -71,7 +75,7 @@
                 <RowTemplate>
                     @foreach (var timeSlot in context.TimeSlots)
                     {
-                        if (timeSlot.startTime.Date == selectedDate) {
+                        if (timeSlot.StartTime.Date == selectedDate) {
                             int index = context.TimeSlots.IndexOf(timeSlot);
                             if (index % 2 == 0 && index < context.TimeSlots.Count - 1)
                             {
@@ -81,22 +85,24 @@
                                         Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
                                         Style="width: 25px"
                                         Elevation="0"
-                                        Value="@timeSlot.startTime.ToString("t")"
+                                        Value="@timeSlot.StartTime.ToString("t")"
+                                        Tag="timeSlot"
                                         Variant="Variant.Filled"
-                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        Color="timeSlot.IsBooked ? Color.Error : Color.Secondary"
                                         SelectedColor="Color.Info"
-                                        Disabled="timeSlot.isBooked">
+                                        Disabled="timeSlot.IsBooked">
                                     </MudChip>
 
                                     <MudChip
                                         Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
                                         Style="width: 25px"
                                         Elevation="0"
-                                        Value="@context.TimeSlots[index + 1].startTime.ToString("t")"
+                                        Value="@context.TimeSlots[index + 1].StartTime.ToString("t")"
+                                        Tag="context.TimeSlots[index + 1]"
                                         Variant="Variant.Filled"
-                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        Color="context.TimeSlots[index + 1].IsBooked ? Color.Error : Color.Secondary"
                                         SelectedColor="Color.Info"
-                                        Disabled="timeSlot.isBooked">
+                                        Disabled="context.TimeSlots[index + 1].IsBooked">
                                     </MudChip>
 
                                 </MudTd>
@@ -109,11 +115,11 @@
                                         Class="d-inline-flex pa-0 ma-0 border-solid border rounded-0"
                                         Style="width: 25px"
                                         Elevation="0"
-                                        Value="@timeSlot.startTime.ToString("t")"
+                                        Value="@timeSlot.StartTime.ToString("t")"
                                         Variant="Variant.Filled"
-                                        Color="timeSlot.isBooked ? Color.Error : Color.Secondary"
+                                        Color="timeSlot.IsBooked ? Color.Error : Color.Secondary"
                                         SelectedColor="Color.Info"
-                                        Disabled="timeSlot.isBooked">
+                                        Disabled="timeSlot.IsBooked">
                                     </MudChip>
 
                                 </MudTd>
@@ -139,14 +145,14 @@
     </MudStack>
 </MudContainer>
 <MudStack AlignItems="AlignItems.Center">
-    <MudButton @onclick="CreateBooking" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary">
+    <MudButton @onclick="CreateBooking" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Disabled="selected == null ? true : selected.Length == 0 ? true : false">
         Book
     </MudButton>
 </MudStack>
 
 
 @code { 
-    private List<Court> courts = new List<Court>();
+    private List<Court> courts = new();
     MudChip[] selected;
     [Parameter]
     public int Id { get; set; }
@@ -157,10 +163,10 @@
         try
         {
             selectedDate = DateTime.Today;
-            courts = await courtService.GetCourtsAsync(Id);
+            courts = await CourtService.GetCourtsAsync(Id);
             foreach (Court court in courts)
             {
-                court.TimeSlots = await timeSlotService.GetTimeSlots(court.Id);
+                court.TimeSlots = await TimeSlotService.GetTimeSlots(court.Id);
             }
             StateHasChanged();
         }
@@ -177,10 +183,20 @@
         StateHasChanged();
     }
 
-    public async Task CreateBooking()
+    private async Task CreateBooking()
     {
-        // TODO: Tjek om logget ind, derefter kalde booking metode
-    }
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedChips", selected);
+        
+        var dialog = DialogService.Show<BookingCheckoutDialog>("Create Booking", parameters);
 
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            NavigationManager.NavigateTo("/");
+            StateHasChanged();
+        }
+    }
 
 }

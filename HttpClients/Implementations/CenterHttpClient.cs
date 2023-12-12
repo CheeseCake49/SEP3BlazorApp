@@ -103,7 +103,7 @@ public class CenterHttpClient : ICenterService
 
     public async Task<string> AddCenterAdminAsync(CenterAdminDTO dto)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync($"/center/{dto.centerId}/admins", dto);
+        HttpResponseMessage response = await client.PostAsJsonAsync($"/center/{dto.CenterId}/admins", dto);
         string content = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
@@ -116,6 +116,6 @@ public class CenterHttpClient : ICenterService
         {
             PropertyNameCaseInsensitive = true
         })!;
-        return newAdmin.username;
+        return newAdmin.Username;
     }
 }
