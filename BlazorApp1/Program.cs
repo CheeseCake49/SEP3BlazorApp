@@ -15,6 +15,7 @@ builder.Services.AddScoped<IBookingService, BookingHttpClient>();
 builder.Services.AddScoped<IBookingAddOnService, BookingAddOnHttpClient>();
 builder.Services.AddScoped<ITimeSlotService, TimeSlotHttpClient>();
 
+builder.Services.AddLocalization();
 builder.Services.AddScoped(
     sp => 
         new HttpClient { 

@@ -6,33 +6,24 @@
 
 <PageTitle>Herskab Padel</PageTitle>
 
-<MudStack AlignItems="AlignItems.Stretch" Justify="Justify.Center">
-    <MudText Typo="Typo.h2" Align="Align.Center">Where are you playing today?</MudText>
+<MudStack AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly" Spacing="2" Style="height: 600px">
+    <MudText Typo="Typo.h2">Where are you playing today?</MudText>
     <MudItem>
-        <MudAutocomplete T="string" Label="Find Center" @bind-Value="value1" SearchFunc="@Search1"
-                         ShowProgressIndicator="true" FullWidth="true">
-            <ProgressIndicatorTemplate>
-                <MudProgressLinear Size="Size.Large" Indeterminate="true" Color="SelectedColor"/>
-            </ProgressIndicatorTemplate>
-        </MudAutocomplete>
+        <MudAutocomplete Style="width: 700px" T="Center" Label="Find Center" @bind-Value="center" 
+                         SearchFunc="@Search" ToStringFunc="@(e=> e==null?null : $"{e.Name} ({e.ZipCode} {e.City})")" />
     </MudItem>
-</MudStack>
-<MudStack AlignItems="AlignItems.Center">
     <MudButton
-               Target="_blank"
-               Variant="Variant.Text"
+               Variant="Variant.Filled"
                EndIcon="@Icons.Material.Filled.NextPlan"
-               Color="Color.Secondary"
-               Style="text-transform:none"
-                OnClick="NavigateToCenter"
-               Size="Size.Large">
+               Color="Color.Primary"
+               Style="text-transform:none; width: 200px; height: 60px;"
+               OnClick="@(e => NavigateToCenter(center.Id))">
         GO!
     </MudButton>
 </MudStack>
 
 @code {
-    private string value1;
-    public Color SelectedColor { get; set; } = Color.Secondary;
+    private Center center;
     private IEnumerable<Center> centers = new List<Center>();
     
     protected override async Task OnInitializedAsync()
@@ -41,19 +32,14 @@
     }
     
 
-    private async Task<IEnumerable<string>> Search1(string value)
+    private async Task<IEnumerable<Center>> Search(string value)
     {
-        if (!centers.Any())
-            centers = await CenterService.GetCentersAsync();
-        await Task.Delay(1000);
-        
-        if (string.IsNullOrEmpty(value))
-            return centers.Select(x => x.Name);
-        return centers.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Name);
+        centers = await CenterService.GetCentersAsync();
+        return centers;
     }
     
-    private void NavigateToCenter()
+    private void NavigateToCenter(int centerId)
     {
-        NavigationManager.NavigateTo($"/webpageindex/bookcourts");
+        NavigationManager.NavigateTo($"/bookcourts/{centerId}");
     }
 }

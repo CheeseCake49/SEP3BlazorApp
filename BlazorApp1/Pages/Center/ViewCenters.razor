@@ -8,7 +8,7 @@
 
 <PageTitle>View Centers</PageTitle>
 
-<MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+<MudTable Items="@centers" Filter="new Func<Center,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Centers</MudText>
         <MudSpacer />
