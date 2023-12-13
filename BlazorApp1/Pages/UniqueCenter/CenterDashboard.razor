@@ -34,8 +34,8 @@
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
 
-    private List<User> admins = new List<User>();
-    private List<User> users = new List<User>();
+    private List<User> admins = new();
+    private List<User> users = new();
 
     private bool hasAccess = false;
 
@@ -43,11 +43,20 @@
     {
         admins = await userService.GetCenterAdminsAsync(Id);
         users = await userService.GetAllUsers();
+        
         foreach (User user in admins)
         {
             users.Remove(users.FirstOrDefault(u => u.Username == user.Username));
         }
-
+        
+        for (int i = 0; i < users.Count; i++)
+        {
+            if (users[i].Role == "Admin")
+            {
+                users.RemoveAt(i);
+            }
+        }
+        
         var authState = await authenticationState;
         var authUser = authState.User;
         hasAccess = authUser.HasClaim($"Center{Id}", Id.ToString()) || authUser.IsInRole("Admin");

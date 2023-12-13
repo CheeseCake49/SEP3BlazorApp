@@ -1,8 +1,10 @@
 ﻿<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
     <AuthorizeView Roles="Admin, Customer">
         <MudNavGroup Title="Manage Centers" Expanded="false">
-            <MudNavLink Href="/addcenter" Match="NavLinkMatch.Prefix">Add Center</MudNavLink>
+            <AuthorizeView Roles="Admin" Context="context1">
+                <MudNavLink Href="/addcenter" Match="NavLinkMatch.Prefix">Add Center</MudNavLink>
+            </AuthorizeView>
             <MudNavLink Href="/viewcenters" Match="NavLinkMatch.Prefix">View Centers</MudNavLink>
         </MudNavGroup>
     </AuthorizeView>
