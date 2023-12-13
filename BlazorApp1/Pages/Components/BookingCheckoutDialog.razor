@@ -1,7 +1,7 @@
 @using HttpClients.ClientInterfaces
-@using MudBlazor.Extensions
 @using global::Shared.Models
 @using global::Shared.DTOs
+@using System.Security.Claims
 @inject IBookingService BookingService
 
 
@@ -22,7 +22,7 @@
  
             <MudStack Class="mt-5" Row="true" Justify="Justify.SpaceBetween">
                 <MudText Typo="Typo.h5">Court(s):</MudText>
-                <MudText Typo="Typo.body1"></MudText>
+                <MudText Typo="Typo.body1">@string.Join(", ", SelectedCourts.Select(court => court.CourtNumber))</MudText>
             </MudStack>
  
             <MudStack Class="mt-5" Row="true" Justify="Justify.SpaceBetween">
@@ -32,7 +32,8 @@
 
  
             <MudStack Class="mt-7" Row="true" Justify="Justify.SpaceBetween">
-                <MudSelect T="int" Label="Rental Rackets">
+                <MudSelect T="int" Label="Rental Rackets" bind-Value="rentalRacks" ToStringFunc="rentalRackConverter" ValueChanged="i => SetRentalRacks(i)">
+                    <MudSelectItem Value="@(0)" />
                     <MudSelectItem Value="@(1)" />
                     <MudSelectItem Value="@(2)" />
                     <MudSelectItem Value="@(3)" />
@@ -42,7 +43,8 @@
                     <MudSelectItem Value="@(7)" />
                     <MudSelectItem Value="@(8)" />
                 </MudSelect>
-                <MudSelect T="int" Label="Can of Balls">
+                <MudSelect T="int" Label="Can of Balls" bind-Value="canOBalls" ToStringFunc="@canOBallConverter" ValueChanged="i => SetCanOBalls(i)">
+                    <MudSelectItem Value="@(0)" />
                     <MudSelectItem Value="@(1)" />
                     <MudSelectItem Value="@(2)" />
                     <MudSelectItem Value="@(3)" />
@@ -52,13 +54,17 @@
  
             <MudStack Class="mt-7" Row="true" Justify="Justify.SpaceBetween">
                 <MudText Typo="Typo.h5">Total price:</MudText>
-                <MudText Typo="Typo.button"></MudText>
+                <MudText Typo="Typo.body1">@(totalPrice)</MudText>
+            </MudStack>
+            <MudStack Class="mt-10" Row="true" Justify="Justify.FlexStart">
+                <MudText Typo="Typo.body2">*Skal payes i the center</MudText>
             </MudStack>
  
-                    <MudStack Class="mt-10" Row="true" Justify="Justify.SpaceBetween">
-                        <MudButton @onclick="CancelBooking" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error">Cancel</MudButton>
-                        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Info" Size="Size.Large">Book</MudButton>
-                    </MudStack>
+            <MudStack Class="mt-10" Row="true" Justify="Justify.SpaceBetween">
+                <MudButton @onclick="CancelBooking" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Error">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Info" Size="Size.Large" OnClick="ConfirmBooking">Book</MudButton>
+            </MudStack>
+            
  
         </MudCardContent>
  
@@ -68,28 +74,75 @@
 @code {
     [Parameter]
     public MudChip[] SelectedChips { get; set; }
-    
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public List<Court> SelectedCourts { get; set; }
+    [Parameter]
+    public ClaimsPrincipal authUser { get; set; }
+    [CascadingParameter] 
+    MudDialogInstance MudDialog { get; set; }
 
+    int timeSlotPrice;
+    int totalPrice;
+    int rentalRacks;
+    int canOBalls;
     
     protected override void OnInitialized()
     {
-        
+        foreach (var timeSlot in SelectedChips)
+        {
+            timeSlotPrice += ((TimeSlot)timeSlot.Tag).Price;
+            totalPrice = timeSlotPrice;
+        }
+        StateHasChanged();
+    }
+
+    private void SetCanOBalls(int i)
+    {
+        totalPrice -= canOBalls * 25;
+        canOBalls = i;
+        totalPrice += canOBalls * 25;
+        StateHasChanged();
+    }
+
+    private void SetRentalRacks(int i)
+    {
+        totalPrice -= rentalRacks * 10;
+        rentalRacks = i;
+        totalPrice += rentalRacks * 10;
+        StateHasChanged();
     }
     
-    // private async Task ConfirmBooking()
-    // {
-    //     try
-    //     {
-    //         await BookingService.CreateBooking(new BookingCreationDTO())
-    //         MudDialog.Close(DialogResult.Ok(true));
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         Console.WriteLine(e);
-    //     }
-    //     
-    // }
+    private async Task ConfirmBooking()
+    {
+        try
+        {
+            List<BookingAddOnCreationDTO> addOns = null;
+            if (rentalRacks > 0 || canOBalls > 0)
+            {
+                addOns = new();
+                if (canOBalls > 0)
+                {
+                    addOns.Add(new BookingAddOnCreationDTO("Can Of Balls", 25, canOBalls));
+                }
+                if (rentalRacks > 0)
+                {
+                    addOns.Add(new BookingAddOnCreationDTO("Rental Rack", 10, rentalRacks));
+                }
+                
+            }
+            List<TimeSlot> timeSlots = SelectedChips.Select(chip => ((TimeSlot)chip.Tag!)).ToList();
+            await BookingService.CreateBooking(new BookingCreationDTO(authUser.Claims.First(claim => claim.Type == ClaimTypes.Name).Value, totalPrice, addOns == null ? null : addOns, timeSlots));
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        
+    }
+
+    private Func<int, string> canOBallConverter = i => $"{i}, {i * 25}kr";
+    private Func<int, string> rentalRackConverter = i => $"{i}, {i * 10}kr";
 
     private void CancelBooking()
     {

@@ -4,6 +4,7 @@
 @using BlazorApp1.Pages.Components
 @inject ITimeSlotService TimeSlotService
 @inject ICourtService CourtService
+@inject ICenterService CenterService
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
@@ -16,13 +17,12 @@
             <MudCard Style="width: 33%">
                 <MudCardHeader>
                     <CardHeaderContent>
-                        <MudText Typo="Typo.h5">Smashy</MudText>
+                        <MudText Typo="Typo.h5">@accessedCenter.Name</MudText>
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Typo="Typo.body1">Enellerandenvej 12</MudText>
-                    <MudText Typo="Typo.body1">8660 Skanderborg</MudText>
-                    <MudText Typo="Typo.body1">88 88 88 88</MudText>
+                    <MudText Typo="Typo.body1">@accessedCenter.Address</MudText>
+                    <MudText Typo="Typo.body1">@accessedCenter.ZipCode @accessedCenter.City</MudText>
                 </MudCardContent>
             </MudCard>
             <MudCard Style="width: 33%">
@@ -42,8 +42,10 @@
                     </CardHeaderContent>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText Typo="Typo.body1">Double Court 1 </MudText>
-                    <MudText Typo="Typo.body1">Double Court 2 </MudText>
+                    @foreach (Court court in courts)
+                    {
+                        <MudText Typo="Typo.body1">@court.CourtType-court @court.CourtNumber</MudText>
+                    }
                 </MudCardContent>
             </MudCard>
             <MudDatePicker PickerVariant="PickerVariant.Static" Rounded="true" Elevation="1" Date="selectedDate" DateChanged="ClearSelection" />
@@ -156,12 +158,17 @@
     MudChip[] selected;
     [Parameter]
     public int Id { get; set; }
+    private Center accessedCenter = new();
     public DateTime? selectedDate { get; set; }
+    
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            accessedCenter = await CenterService.GetByIdAsync(Id);
             selectedDate = DateTime.Today;
             courts = await CourtService.GetCourtsAsync(Id);
             foreach (Court court in courts)
@@ -185,18 +192,40 @@
 
     private async Task CreateBooking()
     {
-        var parameters = new DialogParameters();
-        parameters.Add("SelectedChips", selected);
-        
-        var dialog = DialogService.Show<BookingCheckoutDialog>("Create Booking", parameters);
-
-        var result = await dialog.Result;
-        
-        if (!result.Canceled)
+        var authState = await authenticationState;
+        var authUser = authState.User;
+        if (!(authUser.IsInRole("User") || authUser.IsInRole("Customer") || authUser.IsInRole("Admin")))
         {
-            NavigationManager.NavigateTo("/");
-            StateHasChanged();
+            NavigationManager.NavigateTo("/Login");
+        }
+        else {
+            List<Court> selectedCourts = new();
+            foreach (var court in courts)
+            {
+                foreach (var chip in selected)
+                {
+                    if (court.TimeSlots.Contains((TimeSlot)chip.Tag!))
+                    {
+                        selectedCourts.Add(court);
+                        break;
+                    }
+                }
+            }
+            
+            var parameters = new DialogParameters();
+            parameters.Add("SelectedChips", selected);
+            parameters.Add("SelectedCourts", selectedCourts);
+            parameters.Add("authUser", authUser);
+        
+            var dialog = DialogService.Show<BookingCheckoutDialog>("Create Booking", parameters);
+
+            var result = await dialog.Result;
+        
+            if (!result.Canceled)
+            {
+                NavigationManager.NavigateTo("/");
+                StateHasChanged();
+            }
         }
     }
-
 }

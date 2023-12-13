@@ -3,7 +3,6 @@
 @using HttpClients.ClientInterfaces
 @using BlazorApp1.Pages.Components
 @inject ICourtService courtService
-@inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
 @if (hasAccess)
@@ -48,7 +47,7 @@
     private string msg = "";
     private string searchString1 = "";
     private Court selectedItem1 = null;
-    private HashSet<Court> selectedItems = new HashSet<Court>();
+    private HashSet<Court> selectedItems = new();
     private bool hasAccess = false;
 
 

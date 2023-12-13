@@ -83,7 +83,7 @@ public class CenterHttpClient : ICenterService
         return center;
     }
 
-    public async Task<Center?> GetByIdAsync(int id)
+    public async Task<Center> GetByIdAsync(int id)
     {
         HttpResponseMessage response = await client.GetAsync($"/center/{id}");
         string result = await response.Content.ReadAsStringAsync();
