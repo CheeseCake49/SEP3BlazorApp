@@ -8,22 +8,24 @@
 
 
 
-<h3>INSERT NAME Dashboard</h3>
+<h3>Dashboard for center @Id</h3>
 @if (hasAccess)
 {
-    <MudButton @onclick="() => GoToViewCourts(Id)">View Courts</MudButton>
-    
-    <MudCard>
-        <MudList>
-            @foreach (User user in admins)
-            {
-                <MudListItem>@user.Name ( @user.Username )</MudListItem>
-            }
-        </MudList>
+    <MudStack Justify="Justify.SpaceBetween" Row="true">
+        <MudButton @onclick="() => GoToViewCourts(Id)">View Courts</MudButton>
 
-        <MudButton @onclick="() => AddCenterAdmin()">Add Center Admin</MudButton>
-    </MudCard>
-    
+        <MudCard>
+            <MudText>Center Admins</MudText>
+            <MudList>
+                @foreach (User user in admins)
+                {
+                    <MudListItem>@user.Name ( @user.Username )</MudListItem>
+                }
+            </MudList>
+
+            <MudButton @onclick="() => AddCenterAdmin()">Add Center Admin</MudButton>
+        </MudCard>
+    </MudStack>
 }
 
 @code {

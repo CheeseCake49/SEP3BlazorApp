@@ -5,6 +5,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 
+<AuthorizeView Roles="Admin" Context="context1">
 <PageTitle>Add Center</PageTitle>
 
 <MudPaper Outlined="false" Class="border-none mb-2" Elevation="0">
@@ -68,7 +69,7 @@
 {
     <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="(() => showError = false)">Name is already in use</MudAlert>
 }
-
+</AuthorizeView>
 
 
 @code {
